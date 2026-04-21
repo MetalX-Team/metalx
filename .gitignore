@@ -1,0 +1,13 @@
+.DS_Store
+node_modules/
+dist/
+coverage/
+.vite/
+*.db
+*.sqlite
+*.sqlite3
+bin/
+tmp/
+instruct.md
+.codex
+mx*

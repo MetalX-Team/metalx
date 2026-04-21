@@ -1,0 +1,241 @@
+syntax = "proto3";
+
+package metalx.v1;
+
+option go_package = "metalx.local/proto/metalxpb";
+
+message Empty {}
+
+message Ack {
+  string status = 1;
+}
+
+message NodeID {
+  string id = 1;
+}
+
+message InterfaceInfo {
+  string name = 1;
+  string ip = 2;
+  string mac = 3;
+  string state = 4;
+  string rx = 5;
+  string tx = 6;
+}
+
+message FilesystemInfo {
+  string mount = 1;
+  string size = 2;
+  double used_percent = 3;
+}
+
+message LoggedUser {
+  string user = 1;
+  string tty = 2;
+  string from = 3;
+}
+
+message ProcessInfo {
+  int32 pid = 1;
+  string name = 2;
+  double cpu = 3;
+  double mem = 4;
+}
+
+message AlertInfo {
+  string severity = 1;
+  string message = 2;
+  string at = 3;
+}
+
+message Snapshot {
+  string node_id = 1;
+  string hostname = 2;
+  string os = 3;
+  string kernel = 4;
+  string uptime = 5;
+  double cpu_usage = 6;
+  double memory_usage = 7;
+  double disk_usage = 8;
+  double load1 = 9;
+  double load5 = 10;
+  double load15 = 11;
+  double network_rx_mb = 12;
+  double network_tx_mb = 13;
+  double disk_read_mb = 14;
+  double disk_write_mb = 15;
+  repeated string ip_addresses = 16;
+  repeated string mac_addresses = 17;
+  int32 process_count = 18;
+  int32 user_count = 19;
+  repeated InterfaceInfo interfaces = 20;
+  repeated FilesystemInfo filesystems = 21;
+  repeated LoggedUser logged_users = 22;
+  repeated ProcessInfo top_processes = 23;
+  repeated AlertInfo recent_alerts = 24;
+  string collected_at = 25;
+  string grpc_address = 26;
+}
+
+message CommandRequest {
+  string command = 1;
+}
+
+message CommandResult {
+  string command = 1;
+  string stdout = 2;
+  string stderr = 3;
+  int32 exit_code = 4;
+}
+
+message TerminalFrame {
+  string node_id = 1;
+  string session_id = 2;
+  string shell = 3;
+  string input = 4;
+  string output = 5;
+  string error = 6;
+  bool open = 7;
+  bool close = 8;
+  int32 cols = 9;
+  int32 rows = 10;
+}
+
+message NodeSummary {
+  string id = 1;
+  string name = 2;
+  string address = 3;
+  string os = 4;
+  string kernel = 5;
+  bool online = 6;
+  string last_seen_at = 7;
+  double cpu_usage = 8;
+  double memory_usage = 9;
+  double disk_usage = 10;
+  double load1 = 11;
+  double load5 = 12;
+  double load15 = 13;
+  double network_rx_mb = 14;
+  double network_tx_mb = 15;
+  int32 process_count = 16;
+  string ip_address = 17;
+  string mac_address = 18;
+  string alert_level = 19;
+  string primary_role = 20;
+}
+
+message TaskResult {
+  string node_id = 1;
+  string status = 2;
+  string stdout = 3;
+  string stderr = 4;
+  int32 exit_code = 5;
+  string duration = 6;
+  string started_at = 7;
+}
+
+message NodeDetail {
+  NodeSummary summary = 1;
+  string uptime = 2;
+  int32 user_count = 3;
+  double disk_read_mb = 4;
+  double disk_write_mb = 5;
+  repeated string tags = 6;
+  repeated InterfaceInfo interfaces = 7;
+  repeated FilesystemInfo filesystems = 8;
+  repeated LoggedUser logged_users = 9;
+  repeated ProcessInfo top_processes = 10;
+  repeated AlertInfo recent_alerts = 11;
+  repeated TaskResult recent_commands = 12;
+}
+
+message Task {
+  string id = 1;
+  string command = 2;
+  repeated string targets = 3;
+  string status = 4;
+  string started_at = 5;
+  string finished_at = 6;
+  repeated TaskResult results = 7;
+}
+
+message AuditRecord {
+  string id = 1;
+  string actor = 2;
+  string action = 3;
+  string target = 4;
+  string created_at = 5;
+}
+
+message AlertRecord {
+  string node_id = 1;
+  string node_name = 2;
+  string severity = 3;
+  string message = 4;
+  string at = 5;
+}
+
+message Summary {
+  int32 total_nodes = 1;
+  int32 online_nodes = 2;
+  int32 offline_nodes = 3;
+  double average_cpu = 4;
+  double average_memory = 5;
+  double average_disk = 6;
+  int32 alert_count = 7;
+  int32 running_tasks = 8;
+  string updated_at = 9;
+  double task_success_rate = 10;
+  double network_throughput = 11;
+  repeated NodeSummary hot_nodes = 12;
+}
+
+message SystemInfo {
+  string controller_address = 1;
+  int32 discovery_port = 2;
+  string database_path = 3;
+  bool shell_enabled = 4;
+  string store = 5;
+  string timestamp = 6;
+}
+
+message ListNodesResponse {
+  repeated NodeSummary items = 1;
+}
+
+message ListTasksResponse {
+  repeated Task items = 1;
+}
+
+message ListAuditsResponse {
+  repeated AuditRecord items = 1;
+}
+
+message ListAlertsResponse {
+  repeated AlertRecord items = 1;
+}
+
+message RunTaskRequest {
+  string command = 1;
+  repeated string targets = 2;
+  string actor = 3;
+}
+
+service AgentService {
+  rpc GetSnapshot(Empty) returns (Snapshot);
+  rpc ExecuteCommand(CommandRequest) returns (CommandResult);
+  rpc OpenTerminal(stream TerminalFrame) returns (stream TerminalFrame);
+}
+
+service ControllerService {
+  rpc ReportSnapshot(Snapshot) returns (Ack);
+  rpc GetSummary(Empty) returns (Summary);
+  rpc ListNodes(Empty) returns (ListNodesResponse);
+  rpc GetNode(NodeID) returns (NodeDetail);
+  rpc RunTask(RunTaskRequest) returns (Task);
+  rpc ListTasks(Empty) returns (ListTasksResponse);
+  rpc ListAudits(Empty) returns (ListAuditsResponse);
+  rpc ListAlerts(Empty) returns (ListAlertsResponse);
+  rpc GetSystemInfo(Empty) returns (SystemInfo);
+  rpc OpenTerminal(stream TerminalFrame) returns (stream TerminalFrame);
+}

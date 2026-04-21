@@ -1,0 +1,167 @@
+package store
+
+import (
+	"fmt"
+	"time"
+)
+
+type InterfaceInfo struct {
+	Name  string `json:"name"`
+	IP    string `json:"ip"`
+	MAC   string `json:"mac"`
+	State string `json:"state"`
+	RxMB  string `json:"rx"`
+	TxMB  string `json:"tx"`
+}
+
+type FilesystemInfo struct {
+	Mount       string  `json:"mount"`
+	Size        string  `json:"size"`
+	UsedPercent float64 `json:"usedPercent"`
+}
+
+type LoggedUser struct {
+	User string `json:"user"`
+	TTY  string `json:"tty"`
+	From string `json:"from"`
+}
+
+type ProcessInfo struct {
+	PID  int     `json:"pid"`
+	Name string  `json:"name"`
+	CPU  float64 `json:"cpu"`
+	Mem  float64 `json:"mem"`
+}
+
+type AlertInfo struct {
+	Severity string `json:"severity"`
+	Message  string `json:"message"`
+	At       string `json:"at"`
+}
+
+type NodeSummary struct {
+	ID           string    `json:"id"`
+	Name         string    `json:"name"`
+	Address      string    `json:"address"`
+	OS           string    `json:"os"`
+	Kernel       string    `json:"kernel"`
+	Online       bool      `json:"online"`
+	LastSeenAt   time.Time `json:"lastSeenAt"`
+	CPUUsage     float64   `json:"cpuUsage"`
+	MemoryUsage  float64   `json:"memoryUsage"`
+	DiskUsage    float64   `json:"diskUsage"`
+	Load1        float64   `json:"load1"`
+	Load5        float64   `json:"load5"`
+	Load15       float64   `json:"load15"`
+	NetworkRxMB  float64   `json:"networkRxMb"`
+	NetworkTxMB  float64   `json:"networkTxMb"`
+	ProcessCount int       `json:"processCount"`
+	IPAddress    string    `json:"ipAddress"`
+	MACAddress   string    `json:"macAddress"`
+	AlertLevel   string    `json:"alertLevel"`
+	PrimaryRole  string    `json:"primaryRole"`
+}
+
+type NodeDetail struct {
+	NodeSummary
+	Uptime         string           `json:"uptime"`
+	UserCount      int              `json:"userCount"`
+	DiskReadMB     float64          `json:"diskReadMb"`
+	DiskWriteMB    float64          `json:"diskWriteMb"`
+	Tags           []string         `json:"tags"`
+	Interfaces     []InterfaceInfo  `json:"interfaces"`
+	Filesystems    []FilesystemInfo `json:"filesystems"`
+	LoggedUsers    []LoggedUser     `json:"loggedUsers"`
+	TopProcesses   []ProcessInfo    `json:"topProcesses"`
+	RecentAlerts   []AlertInfo      `json:"recentAlerts"`
+	RecentCommands []TaskResult     `json:"recentCommands"`
+}
+
+type Task struct {
+	ID         string       `json:"id"`
+	Command    string       `json:"command"`
+	Targets    []string     `json:"targets"`
+	Status     string       `json:"status"`
+	StartedAt  time.Time    `json:"startedAt"`
+	FinishedAt *time.Time   `json:"finishedAt,omitempty"`
+	Results    []TaskResult `json:"results"`
+}
+
+type TaskResult struct {
+	NodeID    string `json:"nodeId"`
+	Status    string `json:"status"`
+	Stdout    string `json:"stdout"`
+	Stderr    string `json:"stderr"`
+	ExitCode  int    `json:"exitCode"`
+	Duration  string `json:"duration"`
+	StartedAt string `json:"startedAt"`
+}
+
+type AuditRecord struct {
+	ID        string    `json:"id"`
+	Actor     string    `json:"actor"`
+	Action    string    `json:"action"`
+	Target    string    `json:"target"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+func (s *Store) Summary() map[string]any {
+	nodes := s.ListNodes()
+	online := 0
+	var cpu, memory, disk, throughput float64
+	alerts := 0
+	success := 0
+	results := 0
+	for _, node := range nodes {
+		if node.Online {
+			online++
+		}
+		cpu += node.CPUUsage
+		memory += node.MemoryUsage
+		disk += node.DiskUsage
+		throughput += node.NetworkRxMB + node.NetworkTxMB
+		if node.AlertLevel == "critical" || node.AlertLevel == "warning" {
+			alerts++
+		}
+	}
+	for _, task := range s.Tasks() {
+		for _, result := range task.Results {
+			results++
+			if result.Status == "success" {
+				success++
+			}
+		}
+	}
+
+	count := float64(len(nodes))
+	if count == 0 {
+		count = 1
+	}
+	taskSuccessRate := 100.0
+	if results > 0 {
+		taskSuccessRate = (float64(success) / float64(results)) * 100
+	}
+
+	return map[string]any{
+		"totalNodes":        len(nodes),
+		"onlineNodes":       online,
+		"offlineNodes":      len(nodes) - online,
+		"averageCPU":        cpu / count,
+		"averageMemory":     memory / count,
+		"averageDisk":       disk / count,
+		"alertCount":        alerts,
+		"runningTasks":      0,
+		"updatedAt":         time.Now().UTC(),
+		"hotNodes":          nodes,
+		"taskSuccessRate":   taskSuccessRate,
+		"networkThroughput": throughput,
+	}
+}
+
+func NewTaskID() string {
+	return fmt.Sprintf("task-%d", time.Now().UnixNano())
+}
+
+func isOnline(lastSeenAt time.Time) bool {
+	return time.Since(lastSeenAt) <= 45*time.Second
+}

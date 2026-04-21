@@ -1,0 +1,288 @@
+package app
+
+import (
+	"context"
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
+
+	"metalx.local/proto/metalxpb"
+	"metalx/webapi/internal/auth"
+	"metalx/webapi/internal/config"
+)
+
+type App struct {
+	cfg    config.Config
+	auth   *auth.Manager
+	conn   *grpc.ClientConn
+	client metalxpb.ControllerServiceClient
+}
+
+func New(cfg config.Config) (*App, error) {
+	authManager, err := auth.New(cfg.DatabasePath, cfg.AdminUser, cfg.AdminPassword)
+	if err != nil {
+		return nil, err
+	}
+	conn, err := grpc.Dial(cfg.ControllerAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		_ = authManager.Close()
+		return nil, err
+	}
+	log.Printf("bootstrap admin credentials: %s / %s", cfg.AdminUser, cfg.AdminPassword)
+	return &App{
+		cfg:    cfg,
+		auth:   authManager,
+		conn:   conn,
+		client: metalxpb.NewControllerServiceClient(conn),
+	}, nil
+}
+
+func (a *App) Run() error {
+	defer func() {
+		_ = a.auth.Close()
+		_ = a.conn.Close()
+	}()
+
+	router := gin.Default()
+	router.Use(cors())
+	router.GET("/healthz", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
+	router.POST("/api/auth/login", a.handleLogin)
+
+	protected := router.Group("/api")
+	protected.Use(a.auth.GinMiddleware())
+	protected.GET("/summary", a.handleSummary)
+	protected.GET("/nodes", a.handleNodes)
+	protected.GET("/nodes/:id", a.handleNode)
+	protected.GET("/tasks", a.handleTasks)
+	protected.GET("/audits", a.handleAudits)
+	protected.GET("/alerts", a.handleAlerts)
+	protected.GET("/system", a.handleSystem)
+	protected.POST("/tasks", a.handleRunTask)
+	protected.GET("/terminal", a.handleTerminal)
+
+	return router.Run(a.cfg.ListenAddress)
+}
+
+func (a *App) handleLogin(c *gin.Context) {
+	var payload struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	token, ok := a.auth.Login(payload.Username, payload.Password)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"token":     token,
+		"expiresIn": 43200,
+		"user":      payload.Username,
+	})
+}
+
+func (a *App) handleSummary(c *gin.Context) {
+	resp, err := a.client.GetSummary(a.callContext(c), &metalxpb.Empty{})
+	if err != nil {
+		handleGRPCError(c, err)
+		return
+	}
+	writeProtoJSON(c, resp)
+}
+
+func (a *App) handleNodes(c *gin.Context) {
+	resp, err := a.client.ListNodes(a.callContext(c), &metalxpb.Empty{})
+	if err != nil {
+		handleGRPCError(c, err)
+		return
+	}
+	writeProtoJSON(c, resp)
+}
+
+func (a *App) handleNode(c *gin.Context) {
+	resp, err := a.client.GetNode(a.callContext(c), &metalxpb.NodeID{Id: c.Param("id")})
+	if err != nil {
+		handleGRPCError(c, err)
+		return
+	}
+	writeProtoJSON(c, resp)
+}
+
+func (a *App) handleTasks(c *gin.Context) {
+	resp, err := a.client.ListTasks(a.callContext(c), &metalxpb.Empty{})
+	if err != nil {
+		handleGRPCError(c, err)
+		return
+	}
+	writeProtoJSON(c, resp)
+}
+
+func (a *App) handleAudits(c *gin.Context) {
+	resp, err := a.client.ListAudits(a.callContext(c), &metalxpb.Empty{})
+	if err != nil {
+		handleGRPCError(c, err)
+		return
+	}
+	writeProtoJSON(c, resp)
+}
+
+func (a *App) handleAlerts(c *gin.Context) {
+	resp, err := a.client.ListAlerts(a.callContext(c), &metalxpb.Empty{})
+	if err != nil {
+		handleGRPCError(c, err)
+		return
+	}
+	writeProtoJSON(c, resp)
+}
+
+func (a *App) handleSystem(c *gin.Context) {
+	resp, err := a.client.GetSystemInfo(a.callContext(c), &metalxpb.Empty{})
+	if err != nil {
+		handleGRPCError(c, err)
+		return
+	}
+	writeProtoJSON(c, resp)
+}
+
+func (a *App) handleRunTask(c *gin.Context) {
+	var payload struct {
+		Command string   `json:"command"`
+		Targets []string `json:"targets"`
+		Actor   string   `json:"actor"`
+	}
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := a.client.RunTask(a.callContext(c), &metalxpb.RunTaskRequest{
+		Command: payload.Command,
+		Targets: payload.Targets,
+		Actor:   payload.Actor,
+	})
+	if err != nil {
+		handleGRPCError(c, err)
+		return
+	}
+	writeProtoJSON(c, resp)
+}
+
+func (a *App) handleTerminal(c *gin.Context) {
+	upgrader := websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool { return true },
+	}
+	ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		return
+	}
+	defer ws.Close()
+
+	stream, err := a.client.OpenTerminal(c.Request.Context())
+	if err != nil {
+		handleGRPCError(c, err)
+		return
+	}
+
+	errCh := make(chan error, 2)
+	go func() {
+		for {
+			_, data, readErr := ws.ReadMessage()
+			if readErr != nil {
+				_ = stream.CloseSend()
+				errCh <- readErr
+				return
+			}
+			frame := &metalxpb.TerminalFrame{}
+			if unmarshalErr := protojson.Unmarshal(data, frame); unmarshalErr != nil {
+				errCh <- unmarshalErr
+				return
+			}
+			if sendErr := stream.Send(frame); sendErr != nil {
+				errCh <- sendErr
+				return
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			frame, recvErr := stream.Recv()
+			if recvErr != nil {
+				data, _ := protojson.MarshalOptions{UseProtoNames: false, EmitUnpopulated: true}.Marshal(&metalxpb.TerminalFrame{Close: true})
+				_ = ws.WriteMessage(websocket.TextMessage, data)
+				errCh <- recvErr
+				return
+			}
+			data, marshalErr := protojson.MarshalOptions{UseProtoNames: false, EmitUnpopulated: true}.Marshal(frame)
+			if marshalErr != nil {
+				errCh <- marshalErr
+				return
+			}
+			if writeErr := ws.WriteMessage(websocket.TextMessage, data); writeErr != nil {
+				errCh <- writeErr
+				return
+			}
+		}
+	}()
+
+	<-errCh
+}
+
+func (a *App) callContext(c *gin.Context) context.Context {
+	ctx, _ := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	return ctx
+}
+
+func writeProtoJSON(c *gin.Context, message proto.Message) {
+	data, err := protojson.MarshalOptions{
+		UseProtoNames:   false,
+		EmitUnpopulated: true,
+	}.Marshal(message)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.Data(http.StatusOK, "application/json", data)
+}
+
+func handleGRPCError(c *gin.Context, err error) {
+	if st, ok := status.FromError(err); ok {
+		switch st.Code() {
+		case 3:
+			c.JSON(http.StatusBadRequest, gin.H{"error": st.Message()})
+			return
+		case 5:
+			c.JSON(http.StatusNotFound, gin.H{"error": st.Message()})
+			return
+		case 7:
+			c.JSON(http.StatusForbidden, gin.H{"error": st.Message()})
+			return
+		}
+	}
+	c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
+}
+
+func cors() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		if c.Request.Method == http.MethodOptions {
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+		c.Next()
+	}
+}
