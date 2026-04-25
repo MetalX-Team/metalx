@@ -33,10 +33,16 @@ func New(cfg config.Config) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &App{
+	app := &App{
 		cfg:   cfg,
 		store: persistentStore,
-	}, nil
+	}
+	settings := app.getDnsmasqSettings()
+	if err := app.persistDnsmasqSettings(settings); err != nil {
+		_ = persistentStore.Close()
+		return nil, err
+	}
+	return app, nil
 }
 
 func (a *App) Run(ctx context.Context) error {
@@ -256,6 +262,31 @@ func (a *App) GetSystemInfo(context.Context, *metalxpb.Empty) (*metalxpb.SystemI
 		Store:             "sqlite",
 		Timestamp:         time.Now().UTC().Format(time.RFC3339Nano),
 	}, nil
+}
+
+func (a *App) GetDnsmasqSettings(context.Context, *metalxpb.Empty) (*metalxpb.DnsmasqSettings, error) {
+	settings := a.getDnsmasqSettings()
+	return dnsmasqSettingsToProto(settings), nil
+}
+
+func (a *App) UpdateDnsmasqSettings(_ context.Context, payload *metalxpb.UpdateDnsmasqSettingsRequest) (*metalxpb.DnsmasqSettings, error) {
+	settings := dnsmasqSettingsFromProto(payload.GetSettings())
+	settings.UpdatedAt = time.Now().UTC()
+	settings = a.materializeDnsmasqSettings(settings)
+	if err := validateDnsmasqSettings(settings); err != nil {
+		return nil, grpcInvalid(err.Error())
+	}
+	if err := a.persistDnsmasqSettings(settings); err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	a.store.AddAudit(store.AuditRecord{
+		ID:        "audit-dnsmasq-" + settings.UpdatedAt.Format("20060102150405.000000000"),
+		Actor:     fallback(payload.GetActor(), "dashboard"),
+		Action:    "update_dnsmasq",
+		Target:    settings.ListenInterface,
+		CreatedAt: settings.UpdatedAt,
+	})
+	return dnsmasqSettingsToProto(settings), nil
 }
 
 func (a *App) OpenTerminal(stream grpc.BidiStreamingServer[metalxpb.TerminalFrame, metalxpb.TerminalFrame]) error {

@@ -154,6 +154,65 @@ func taskToProto(task store.Task) *metalxpb.Task {
 	}
 }
 
+func dnsmasqSettingsToProto(settings store.DnsmasqSettings) *metalxpb.DnsmasqSettings {
+	return &metalxpb.DnsmasqSettings{
+		Enabled:         settings.Enabled,
+		ListenInterface: settings.ListenInterface,
+		BindAddress:     settings.BindAddress,
+		DhcpRangeStart:  settings.DHCPRangeStart,
+		DhcpRangeEnd:    settings.DHCPRangeEnd,
+		DhcpLeaseTime:   settings.DHCPLeaseTime,
+		Gateway:         settings.Gateway,
+		DnsServers:      settings.DNSServers,
+		TftpRoot:        settings.TFTPRoot,
+		BootFile:        settings.BootFile,
+		PxePrompt:       settings.PXEPrompt,
+		PxeServiceLabel: settings.PXEServiceLabel,
+		KernelPath:      settings.KernelPath,
+		InitrdPath:      settings.InitrdPath,
+		BootArgs:        settings.BootArgs,
+		NextServer:      settings.NextServer,
+		ConfigPath:      settings.ConfigPath,
+		PxeConfigPath:   settings.PXEConfigPath,
+		RenderedConfig:  settings.RenderedConfig,
+		RenderedPxeMenu: settings.RenderedPXEMenu,
+		UpdatedAt:       settings.UpdatedAt.UTC().Format(time.RFC3339Nano),
+	}
+}
+
+func dnsmasqSettingsFromProto(settings *metalxpb.DnsmasqSettings) store.DnsmasqSettings {
+	if settings == nil {
+		return store.DnsmasqSettings{}
+	}
+	updatedAt, err := time.Parse(time.RFC3339Nano, settings.GetUpdatedAt())
+	if err != nil {
+		updatedAt = time.Time{}
+	}
+	return store.DnsmasqSettings{
+		Enabled:         settings.GetEnabled(),
+		ListenInterface: settings.GetListenInterface(),
+		BindAddress:     settings.GetBindAddress(),
+		DHCPRangeStart:  settings.GetDhcpRangeStart(),
+		DHCPRangeEnd:    settings.GetDhcpRangeEnd(),
+		DHCPLeaseTime:   settings.GetDhcpLeaseTime(),
+		Gateway:         settings.GetGateway(),
+		DNSServers:      settings.GetDnsServers(),
+		TFTPRoot:        settings.GetTftpRoot(),
+		BootFile:        settings.GetBootFile(),
+		PXEPrompt:       settings.GetPxePrompt(),
+		PXEServiceLabel: settings.GetPxeServiceLabel(),
+		KernelPath:      settings.GetKernelPath(),
+		InitrdPath:      settings.GetInitrdPath(),
+		BootArgs:        settings.GetBootArgs(),
+		NextServer:      settings.GetNextServer(),
+		ConfigPath:      settings.GetConfigPath(),
+		PXEConfigPath:   settings.GetPxeConfigPath(),
+		RenderedConfig:  settings.GetRenderedConfig(),
+		RenderedPXEMenu: settings.GetRenderedPxeMenu(),
+		UpdatedAt:       updatedAt,
+	}
+}
+
 func asInt(value any) int {
 	switch typed := value.(type) {
 	case int:

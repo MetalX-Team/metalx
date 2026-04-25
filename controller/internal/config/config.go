@@ -10,6 +10,7 @@ type Config struct {
 	GRPCListenAddress string
 	DiscoveryPort     int
 	DatabasePath      string
+	DNSMasqStateDir   string
 	AuthToken         string
 	AllowedShell      bool
 	DefaultNodeAddr   string
@@ -21,6 +22,7 @@ func Load(args []string) Config {
 		GRPCListenAddress: envOrDefault("MX_CONTROLLER_GRPC_LISTEN", ":19081"),
 		DiscoveryPort:     9527,
 		DatabasePath:      envOrDefault("MX_CONTROLLER_DB", "metalx-controller.sqlite"),
+		DNSMasqStateDir:   envOrDefault("MX_DNSMASQ_STATE_DIR", "runtime/dnsmasq"),
 		AuthToken:         envOrDefault("MX_CONTROLLER_TOKEN", "dev-controller-token"),
 		AllowedShell:      true,
 		DefaultNodeAddr:   envOrDefault("MX_AGENT_FALLBACK_ADDR", "127.0.0.1:19091"),
@@ -31,6 +33,7 @@ func Load(args []string) Config {
 	fs.StringVar(&cfg.GRPCListenAddress, "grpc-listen", cfg.GRPCListenAddress, "controller grpc listen address")
 	fs.IntVar(&cfg.DiscoveryPort, "discovery-port", cfg.DiscoveryPort, "udp discovery port")
 	fs.StringVar(&cfg.DatabasePath, "db", cfg.DatabasePath, "sqlite database path")
+	fs.StringVar(&cfg.DNSMasqStateDir, "dnsmasq-dir", cfg.DNSMasqStateDir, "dnsmasq generated state directory")
 	fs.StringVar(&cfg.AuthToken, "token", cfg.AuthToken, "shared auth token")
 	fs.BoolVar(&cfg.AllowedShell, "allow-shell", cfg.AllowedShell, "allow command execution")
 	fs.StringVar(&cfg.DefaultNodeAddr, "default-agent-addr", cfg.DefaultNodeAddr, "fallback agent address")

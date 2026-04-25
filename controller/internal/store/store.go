@@ -105,6 +105,30 @@ type AuditRecord struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
+type DnsmasqSettings struct {
+	Enabled         bool      `json:"enabled"`
+	ListenInterface string    `json:"listenInterface"`
+	BindAddress     string    `json:"bindAddress"`
+	DHCPRangeStart  string    `json:"dhcpRangeStart"`
+	DHCPRangeEnd    string    `json:"dhcpRangeEnd"`
+	DHCPLeaseTime   string    `json:"dhcpLeaseTime"`
+	Gateway         string    `json:"gateway"`
+	DNSServers      []string  `json:"dnsServers"`
+	TFTPRoot        string    `json:"tftpRoot"`
+	BootFile        string    `json:"bootFile"`
+	PXEPrompt       string    `json:"pxePrompt"`
+	PXEServiceLabel string    `json:"pxeServiceLabel"`
+	KernelPath      string    `json:"kernelPath"`
+	InitrdPath      string    `json:"initrdPath"`
+	BootArgs        string    `json:"bootArgs"`
+	NextServer      string    `json:"nextServer"`
+	ConfigPath      string    `json:"configPath"`
+	PXEConfigPath   string    `json:"pxeConfigPath"`
+	RenderedConfig  string    `json:"renderedConfig"`
+	RenderedPXEMenu string    `json:"renderedPxeMenu"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+}
+
 func (s *Store) Summary() map[string]any {
 	nodes := s.ListNodes()
 	online := 0

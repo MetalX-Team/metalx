@@ -199,6 +199,35 @@ message SystemInfo {
   string timestamp = 6;
 }
 
+message DnsmasqSettings {
+  bool enabled = 1;
+  string listen_interface = 2;
+  string bind_address = 3;
+  string dhcp_range_start = 4;
+  string dhcp_range_end = 5;
+  string dhcp_lease_time = 6;
+  string gateway = 7;
+  repeated string dns_servers = 8;
+  string tftp_root = 9;
+  string boot_file = 10;
+  string pxe_prompt = 11;
+  string pxe_service_label = 12;
+  string kernel_path = 13;
+  string initrd_path = 14;
+  string boot_args = 15;
+  string next_server = 16;
+  string config_path = 17;
+  string pxe_config_path = 18;
+  string rendered_config = 19;
+  string rendered_pxe_menu = 20;
+  string updated_at = 21;
+}
+
+message UpdateDnsmasqSettingsRequest {
+  DnsmasqSettings settings = 1;
+  string actor = 2;
+}
+
 message ListNodesResponse {
   repeated NodeSummary items = 1;
 }
@@ -237,5 +266,7 @@ service ControllerService {
   rpc ListAudits(Empty) returns (ListAuditsResponse);
   rpc ListAlerts(Empty) returns (ListAlertsResponse);
   rpc GetSystemInfo(Empty) returns (SystemInfo);
+  rpc GetDnsmasqSettings(Empty) returns (DnsmasqSettings);
+  rpc UpdateDnsmasqSettings(UpdateDnsmasqSettingsRequest) returns (DnsmasqSettings);
   rpc OpenTerminal(stream TerminalFrame) returns (stream TerminalFrame);
 }

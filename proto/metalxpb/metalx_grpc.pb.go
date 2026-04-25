@@ -192,16 +192,18 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	ControllerService_ReportSnapshot_FullMethodName = "/metalx.v1.ControllerService/ReportSnapshot"
-	ControllerService_GetSummary_FullMethodName     = "/metalx.v1.ControllerService/GetSummary"
-	ControllerService_ListNodes_FullMethodName      = "/metalx.v1.ControllerService/ListNodes"
-	ControllerService_GetNode_FullMethodName        = "/metalx.v1.ControllerService/GetNode"
-	ControllerService_RunTask_FullMethodName        = "/metalx.v1.ControllerService/RunTask"
-	ControllerService_ListTasks_FullMethodName      = "/metalx.v1.ControllerService/ListTasks"
-	ControllerService_ListAudits_FullMethodName     = "/metalx.v1.ControllerService/ListAudits"
-	ControllerService_ListAlerts_FullMethodName     = "/metalx.v1.ControllerService/ListAlerts"
-	ControllerService_GetSystemInfo_FullMethodName  = "/metalx.v1.ControllerService/GetSystemInfo"
-	ControllerService_OpenTerminal_FullMethodName   = "/metalx.v1.ControllerService/OpenTerminal"
+	ControllerService_ReportSnapshot_FullMethodName        = "/metalx.v1.ControllerService/ReportSnapshot"
+	ControllerService_GetSummary_FullMethodName            = "/metalx.v1.ControllerService/GetSummary"
+	ControllerService_ListNodes_FullMethodName             = "/metalx.v1.ControllerService/ListNodes"
+	ControllerService_GetNode_FullMethodName               = "/metalx.v1.ControllerService/GetNode"
+	ControllerService_RunTask_FullMethodName               = "/metalx.v1.ControllerService/RunTask"
+	ControllerService_ListTasks_FullMethodName             = "/metalx.v1.ControllerService/ListTasks"
+	ControllerService_ListAudits_FullMethodName            = "/metalx.v1.ControllerService/ListAudits"
+	ControllerService_ListAlerts_FullMethodName            = "/metalx.v1.ControllerService/ListAlerts"
+	ControllerService_GetSystemInfo_FullMethodName         = "/metalx.v1.ControllerService/GetSystemInfo"
+	ControllerService_GetDnsmasqSettings_FullMethodName    = "/metalx.v1.ControllerService/GetDnsmasqSettings"
+	ControllerService_UpdateDnsmasqSettings_FullMethodName = "/metalx.v1.ControllerService/UpdateDnsmasqSettings"
+	ControllerService_OpenTerminal_FullMethodName          = "/metalx.v1.ControllerService/OpenTerminal"
 )
 
 // ControllerServiceClient is the client API for ControllerService service.
@@ -217,6 +219,8 @@ type ControllerServiceClient interface {
 	ListAudits(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListAuditsResponse, error)
 	ListAlerts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListAlertsResponse, error)
 	GetSystemInfo(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*SystemInfo, error)
+	GetDnsmasqSettings(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*DnsmasqSettings, error)
+	UpdateDnsmasqSettings(ctx context.Context, in *UpdateDnsmasqSettingsRequest, opts ...grpc.CallOption) (*DnsmasqSettings, error)
 	OpenTerminal(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[TerminalFrame, TerminalFrame], error)
 }
 
@@ -318,6 +322,26 @@ func (c *controllerServiceClient) GetSystemInfo(ctx context.Context, in *Empty, 
 	return out, nil
 }
 
+func (c *controllerServiceClient) GetDnsmasqSettings(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*DnsmasqSettings, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DnsmasqSettings)
+	err := c.cc.Invoke(ctx, ControllerService_GetDnsmasqSettings_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *controllerServiceClient) UpdateDnsmasqSettings(ctx context.Context, in *UpdateDnsmasqSettingsRequest, opts ...grpc.CallOption) (*DnsmasqSettings, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DnsmasqSettings)
+	err := c.cc.Invoke(ctx, ControllerService_UpdateDnsmasqSettings_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *controllerServiceClient) OpenTerminal(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[TerminalFrame, TerminalFrame], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &ControllerService_ServiceDesc.Streams[0], ControllerService_OpenTerminal_FullMethodName, cOpts...)
@@ -344,6 +368,8 @@ type ControllerServiceServer interface {
 	ListAudits(context.Context, *Empty) (*ListAuditsResponse, error)
 	ListAlerts(context.Context, *Empty) (*ListAlertsResponse, error)
 	GetSystemInfo(context.Context, *Empty) (*SystemInfo, error)
+	GetDnsmasqSettings(context.Context, *Empty) (*DnsmasqSettings, error)
+	UpdateDnsmasqSettings(context.Context, *UpdateDnsmasqSettingsRequest) (*DnsmasqSettings, error)
 	OpenTerminal(grpc.BidiStreamingServer[TerminalFrame, TerminalFrame]) error
 	mustEmbedUnimplementedControllerServiceServer()
 }
@@ -381,6 +407,12 @@ func (UnimplementedControllerServiceServer) ListAlerts(context.Context, *Empty) 
 }
 func (UnimplementedControllerServiceServer) GetSystemInfo(context.Context, *Empty) (*SystemInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSystemInfo not implemented")
+}
+func (UnimplementedControllerServiceServer) GetDnsmasqSettings(context.Context, *Empty) (*DnsmasqSettings, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDnsmasqSettings not implemented")
+}
+func (UnimplementedControllerServiceServer) UpdateDnsmasqSettings(context.Context, *UpdateDnsmasqSettingsRequest) (*DnsmasqSettings, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateDnsmasqSettings not implemented")
 }
 func (UnimplementedControllerServiceServer) OpenTerminal(grpc.BidiStreamingServer[TerminalFrame, TerminalFrame]) error {
 	return status.Errorf(codes.Unimplemented, "method OpenTerminal not implemented")
@@ -568,6 +600,42 @@ func _ControllerService_GetSystemInfo_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ControllerService_GetDnsmasqSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControllerServiceServer).GetDnsmasqSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ControllerService_GetDnsmasqSettings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControllerServiceServer).GetDnsmasqSettings(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ControllerService_UpdateDnsmasqSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateDnsmasqSettingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControllerServiceServer).UpdateDnsmasqSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ControllerService_UpdateDnsmasqSettings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControllerServiceServer).UpdateDnsmasqSettings(ctx, req.(*UpdateDnsmasqSettingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ControllerService_OpenTerminal_Handler(srv interface{}, stream grpc.ServerStream) error {
 	return srv.(ControllerServiceServer).OpenTerminal(&grpc.GenericServerStream[TerminalFrame, TerminalFrame]{ServerStream: stream})
 }
@@ -617,6 +685,14 @@ var ControllerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSystemInfo",
 			Handler:    _ControllerService_GetSystemInfo_Handler,
+		},
+		{
+			MethodName: "GetDnsmasqSettings",
+			Handler:    _ControllerService_GetDnsmasqSettings_Handler,
+		},
+		{
+			MethodName: "UpdateDnsmasqSettings",
+			Handler:    _ControllerService_UpdateDnsmasqSettings_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

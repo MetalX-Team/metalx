@@ -63,6 +63,11 @@ func (s *Store) migrate() error {
 			created_at TEXT NOT NULL,
 			payload_json TEXT NOT NULL
 		)`,
+		`CREATE TABLE IF NOT EXISTS configs (
+			name TEXT PRIMARY KEY,
+			updated_at TEXT NOT NULL,
+			payload_json TEXT NOT NULL
+		)`,
 	}
 	for _, statement := range statements {
 		if _, err := s.db.Exec(statement); err != nil {
@@ -229,6 +234,37 @@ func (s *Store) Audits() []AuditRecord {
 		items = append(items, audit)
 	}
 	return items
+}
+
+func (s *Store) SaveDnsmasqSettings(settings DnsmasqSettings) error {
+	payload, err := json.Marshal(settings)
+	if err != nil {
+		return err
+	}
+	_, err = s.db.Exec(
+		`INSERT INTO configs (name, updated_at, payload_json)
+		 VALUES (?, ?, ?)
+		 ON CONFLICT(name) DO UPDATE SET
+		   updated_at = excluded.updated_at,
+		   payload_json = excluded.payload_json`,
+		"dnsmasq",
+		settings.UpdatedAt.UTC().Format(time.RFC3339Nano),
+		string(payload),
+	)
+	return err
+}
+
+func (s *Store) LoadDnsmasqSettings() (DnsmasqSettings, bool) {
+	var payload string
+	err := s.db.QueryRow(`SELECT payload_json FROM configs WHERE name = ?`, "dnsmasq").Scan(&payload)
+	if err != nil {
+		return DnsmasqSettings{}, false
+	}
+	var settings DnsmasqSettings
+	if json.Unmarshal([]byte(payload), &settings) != nil {
+		return DnsmasqSettings{}, false
+	}
+	return settings, true
 }
 
 func (s *Store) AddRecentCommand(nodeID string, result TaskResult) {

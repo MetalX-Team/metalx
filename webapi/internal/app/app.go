@@ -67,6 +67,8 @@ func (a *App) Run() error {
 	protected.GET("/audits", a.handleAudits)
 	protected.GET("/alerts", a.handleAlerts)
 	protected.GET("/system", a.handleSystem)
+	protected.GET("/system/dnsmasq", a.handleDnsmasqSettings)
+	protected.PUT("/system/dnsmasq", a.handleUpdateDnsmasqSettings)
 	protected.POST("/tasks", a.handleRunTask)
 	protected.GET("/terminal", a.handleTerminal)
 
@@ -150,6 +152,67 @@ func (a *App) handleAlerts(c *gin.Context) {
 
 func (a *App) handleSystem(c *gin.Context) {
 	resp, err := a.client.GetSystemInfo(a.callContext(c), &metalxpb.Empty{})
+	if err != nil {
+		handleGRPCError(c, err)
+		return
+	}
+	writeProtoJSON(c, resp)
+}
+
+func (a *App) handleDnsmasqSettings(c *gin.Context) {
+	resp, err := a.client.GetDnsmasqSettings(a.callContext(c), &metalxpb.Empty{})
+	if err != nil {
+		handleGRPCError(c, err)
+		return
+	}
+	writeProtoJSON(c, resp)
+}
+
+func (a *App) handleUpdateDnsmasqSettings(c *gin.Context) {
+	var payload struct {
+		Enabled         bool     `json:"enabled"`
+		ListenInterface string   `json:"listenInterface"`
+		BindAddress     string   `json:"bindAddress"`
+		DHCPRangeStart  string   `json:"dhcpRangeStart"`
+		DHCPRangeEnd    string   `json:"dhcpRangeEnd"`
+		DHCPLeaseTime   string   `json:"dhcpLeaseTime"`
+		Gateway         string   `json:"gateway"`
+		DNSServers      []string `json:"dnsServers"`
+		TFTPRoot        string   `json:"tftpRoot"`
+		BootFile        string   `json:"bootFile"`
+		PXEPrompt       string   `json:"pxePrompt"`
+		PXEServiceLabel string   `json:"pxeServiceLabel"`
+		KernelPath      string   `json:"kernelPath"`
+		InitrdPath      string   `json:"initrdPath"`
+		BootArgs        string   `json:"bootArgs"`
+		NextServer      string   `json:"nextServer"`
+		Actor           string   `json:"actor"`
+	}
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := a.client.UpdateDnsmasqSettings(a.callContext(c), &metalxpb.UpdateDnsmasqSettingsRequest{
+		Settings: &metalxpb.DnsmasqSettings{
+			Enabled:         payload.Enabled,
+			ListenInterface: payload.ListenInterface,
+			BindAddress:     payload.BindAddress,
+			DhcpRangeStart:  payload.DHCPRangeStart,
+			DhcpRangeEnd:    payload.DHCPRangeEnd,
+			DhcpLeaseTime:   payload.DHCPLeaseTime,
+			Gateway:         payload.Gateway,
+			DnsServers:      payload.DNSServers,
+			TftpRoot:        payload.TFTPRoot,
+			BootFile:        payload.BootFile,
+			PxePrompt:       payload.PXEPrompt,
+			PxeServiceLabel: payload.PXEServiceLabel,
+			KernelPath:      payload.KernelPath,
+			InitrdPath:      payload.InitrdPath,
+			BootArgs:        payload.BootArgs,
+			NextServer:      payload.NextServer,
+		},
+		Actor: payload.Actor,
+	})
 	if err != nil {
 		handleGRPCError(c, err)
 		return
@@ -278,7 +341,7 @@ func cors() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
 		if c.Request.Method == http.MethodOptions {
 			c.AbortWithStatus(http.StatusNoContent)
 			return

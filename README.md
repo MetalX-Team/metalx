@@ -57,6 +57,9 @@ The production-ready assets will be located in `dashboard/dist/`. These files ca
 ./bin/mxctl
 ```
 
+The controller now manages generated `dnsmasq` and PXE files. By default it writes them under `runtime/dnsmasq/`.
+You can override the output directory with `MX_DNSMASQ_STATE_DIR` or `./bin/mxctl --dnsmasq-dir /srv/metalx/dnsmasq`.
+
 ### 2. Start the agent
 
 ```bash
@@ -88,8 +91,21 @@ npm run dev
 
 - Agent exposes real host snapshot and command execution endpoints based on live system data.
 - Controller ingests live agent reports, tracks node state, tasks, alerts, and audits, and exposes cluster APIs.
+- Controller persists editable `dnsmasq` settings, renders `dnsmasq.conf` and `pxelinux.cfg/default`, and stores an audit record for PXE changes.
 - WebAPI provides login and authenticated proxy endpoints to the controller.
 - Dashboard renders a live operational command center backed by WebAPI data only.
+- Dashboard system settings allow editing `dnsmasq` parameters for PXE boot, including DHCP range, TFTP root, boot file, kernel/initrd, and boot arguments.
+
+## PXE / dnsmasq Workflow
+
+1. Open the dashboard and go to `系统设置`.
+2. Fill in the `dnsmasq / PXE 引导配置` form.
+3. Save the configuration. The controller will validate the values, persist them in SQLite, and render:
+   - `runtime/dnsmasq/dnsmasq.conf`
+   - `runtime/dnsmasq/tftp-root/pxelinux.cfg/default` by default
+4. Place your PXE boot assets under the configured TFTP root so the generated menu paths resolve correctly.
+
+The dashboard also shows the rendered `dnsmasq.conf` and PXE menu preview so you can verify the output before wiring the files into a host-level `dnsmasq` service.
 
 ## Next Steps
 

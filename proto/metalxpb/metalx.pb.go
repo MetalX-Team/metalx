@@ -1829,6 +1829,262 @@ func (x *SystemInfo) GetTimestamp() string {
 	return ""
 }
 
+type DnsmasqSettings struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Enabled         bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	ListenInterface string                 `protobuf:"bytes,2,opt,name=listen_interface,json=listenInterface,proto3" json:"listen_interface,omitempty"`
+	BindAddress     string                 `protobuf:"bytes,3,opt,name=bind_address,json=bindAddress,proto3" json:"bind_address,omitempty"`
+	DhcpRangeStart  string                 `protobuf:"bytes,4,opt,name=dhcp_range_start,json=dhcpRangeStart,proto3" json:"dhcp_range_start,omitempty"`
+	DhcpRangeEnd    string                 `protobuf:"bytes,5,opt,name=dhcp_range_end,json=dhcpRangeEnd,proto3" json:"dhcp_range_end,omitempty"`
+	DhcpLeaseTime   string                 `protobuf:"bytes,6,opt,name=dhcp_lease_time,json=dhcpLeaseTime,proto3" json:"dhcp_lease_time,omitempty"`
+	Gateway         string                 `protobuf:"bytes,7,opt,name=gateway,proto3" json:"gateway,omitempty"`
+	DnsServers      []string               `protobuf:"bytes,8,rep,name=dns_servers,json=dnsServers,proto3" json:"dns_servers,omitempty"`
+	TftpRoot        string                 `protobuf:"bytes,9,opt,name=tftp_root,json=tftpRoot,proto3" json:"tftp_root,omitempty"`
+	BootFile        string                 `protobuf:"bytes,10,opt,name=boot_file,json=bootFile,proto3" json:"boot_file,omitempty"`
+	PxePrompt       string                 `protobuf:"bytes,11,opt,name=pxe_prompt,json=pxePrompt,proto3" json:"pxe_prompt,omitempty"`
+	PxeServiceLabel string                 `protobuf:"bytes,12,opt,name=pxe_service_label,json=pxeServiceLabel,proto3" json:"pxe_service_label,omitempty"`
+	KernelPath      string                 `protobuf:"bytes,13,opt,name=kernel_path,json=kernelPath,proto3" json:"kernel_path,omitempty"`
+	InitrdPath      string                 `protobuf:"bytes,14,opt,name=initrd_path,json=initrdPath,proto3" json:"initrd_path,omitempty"`
+	BootArgs        string                 `protobuf:"bytes,15,opt,name=boot_args,json=bootArgs,proto3" json:"boot_args,omitempty"`
+	NextServer      string                 `protobuf:"bytes,16,opt,name=next_server,json=nextServer,proto3" json:"next_server,omitempty"`
+	ConfigPath      string                 `protobuf:"bytes,17,opt,name=config_path,json=configPath,proto3" json:"config_path,omitempty"`
+	PxeConfigPath   string                 `protobuf:"bytes,18,opt,name=pxe_config_path,json=pxeConfigPath,proto3" json:"pxe_config_path,omitempty"`
+	RenderedConfig  string                 `protobuf:"bytes,19,opt,name=rendered_config,json=renderedConfig,proto3" json:"rendered_config,omitempty"`
+	RenderedPxeMenu string                 `protobuf:"bytes,20,opt,name=rendered_pxe_menu,json=renderedPxeMenu,proto3" json:"rendered_pxe_menu,omitempty"`
+	UpdatedAt       string                 `protobuf:"bytes,21,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *DnsmasqSettings) Reset() {
+	*x = DnsmasqSettings{}
+	mi := &file_metalx_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DnsmasqSettings) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DnsmasqSettings) ProtoMessage() {}
+
+func (x *DnsmasqSettings) ProtoReflect() protoreflect.Message {
+	mi := &file_metalx_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DnsmasqSettings.ProtoReflect.Descriptor instead.
+func (*DnsmasqSettings) Descriptor() ([]byte, []int) {
+	return file_metalx_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *DnsmasqSettings) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *DnsmasqSettings) GetListenInterface() string {
+	if x != nil {
+		return x.ListenInterface
+	}
+	return ""
+}
+
+func (x *DnsmasqSettings) GetBindAddress() string {
+	if x != nil {
+		return x.BindAddress
+	}
+	return ""
+}
+
+func (x *DnsmasqSettings) GetDhcpRangeStart() string {
+	if x != nil {
+		return x.DhcpRangeStart
+	}
+	return ""
+}
+
+func (x *DnsmasqSettings) GetDhcpRangeEnd() string {
+	if x != nil {
+		return x.DhcpRangeEnd
+	}
+	return ""
+}
+
+func (x *DnsmasqSettings) GetDhcpLeaseTime() string {
+	if x != nil {
+		return x.DhcpLeaseTime
+	}
+	return ""
+}
+
+func (x *DnsmasqSettings) GetGateway() string {
+	if x != nil {
+		return x.Gateway
+	}
+	return ""
+}
+
+func (x *DnsmasqSettings) GetDnsServers() []string {
+	if x != nil {
+		return x.DnsServers
+	}
+	return nil
+}
+
+func (x *DnsmasqSettings) GetTftpRoot() string {
+	if x != nil {
+		return x.TftpRoot
+	}
+	return ""
+}
+
+func (x *DnsmasqSettings) GetBootFile() string {
+	if x != nil {
+		return x.BootFile
+	}
+	return ""
+}
+
+func (x *DnsmasqSettings) GetPxePrompt() string {
+	if x != nil {
+		return x.PxePrompt
+	}
+	return ""
+}
+
+func (x *DnsmasqSettings) GetPxeServiceLabel() string {
+	if x != nil {
+		return x.PxeServiceLabel
+	}
+	return ""
+}
+
+func (x *DnsmasqSettings) GetKernelPath() string {
+	if x != nil {
+		return x.KernelPath
+	}
+	return ""
+}
+
+func (x *DnsmasqSettings) GetInitrdPath() string {
+	if x != nil {
+		return x.InitrdPath
+	}
+	return ""
+}
+
+func (x *DnsmasqSettings) GetBootArgs() string {
+	if x != nil {
+		return x.BootArgs
+	}
+	return ""
+}
+
+func (x *DnsmasqSettings) GetNextServer() string {
+	if x != nil {
+		return x.NextServer
+	}
+	return ""
+}
+
+func (x *DnsmasqSettings) GetConfigPath() string {
+	if x != nil {
+		return x.ConfigPath
+	}
+	return ""
+}
+
+func (x *DnsmasqSettings) GetPxeConfigPath() string {
+	if x != nil {
+		return x.PxeConfigPath
+	}
+	return ""
+}
+
+func (x *DnsmasqSettings) GetRenderedConfig() string {
+	if x != nil {
+		return x.RenderedConfig
+	}
+	return ""
+}
+
+func (x *DnsmasqSettings) GetRenderedPxeMenu() string {
+	if x != nil {
+		return x.RenderedPxeMenu
+	}
+	return ""
+}
+
+func (x *DnsmasqSettings) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+type UpdateDnsmasqSettingsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Settings      *DnsmasqSettings       `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
+	Actor         string                 `protobuf:"bytes,2,opt,name=actor,proto3" json:"actor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateDnsmasqSettingsRequest) Reset() {
+	*x = UpdateDnsmasqSettingsRequest{}
+	mi := &file_metalx_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateDnsmasqSettingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateDnsmasqSettingsRequest) ProtoMessage() {}
+
+func (x *UpdateDnsmasqSettingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_metalx_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateDnsmasqSettingsRequest.ProtoReflect.Descriptor instead.
+func (*UpdateDnsmasqSettingsRequest) Descriptor() ([]byte, []int) {
+	return file_metalx_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *UpdateDnsmasqSettingsRequest) GetSettings() *DnsmasqSettings {
+	if x != nil {
+		return x.Settings
+	}
+	return nil
+}
+
+func (x *UpdateDnsmasqSettingsRequest) GetActor() string {
+	if x != nil {
+		return x.Actor
+	}
+	return ""
+}
+
 type ListNodesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Items         []*NodeSummary         `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
@@ -1838,7 +2094,7 @@ type ListNodesResponse struct {
 
 func (x *ListNodesResponse) Reset() {
 	*x = ListNodesResponse{}
-	mi := &file_metalx_proto_msgTypes[20]
+	mi := &file_metalx_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1850,7 +2106,7 @@ func (x *ListNodesResponse) String() string {
 func (*ListNodesResponse) ProtoMessage() {}
 
 func (x *ListNodesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_metalx_proto_msgTypes[20]
+	mi := &file_metalx_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1863,7 +2119,7 @@ func (x *ListNodesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNodesResponse.ProtoReflect.Descriptor instead.
 func (*ListNodesResponse) Descriptor() ([]byte, []int) {
-	return file_metalx_proto_rawDescGZIP(), []int{20}
+	return file_metalx_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ListNodesResponse) GetItems() []*NodeSummary {
@@ -1882,7 +2138,7 @@ type ListTasksResponse struct {
 
 func (x *ListTasksResponse) Reset() {
 	*x = ListTasksResponse{}
-	mi := &file_metalx_proto_msgTypes[21]
+	mi := &file_metalx_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1894,7 +2150,7 @@ func (x *ListTasksResponse) String() string {
 func (*ListTasksResponse) ProtoMessage() {}
 
 func (x *ListTasksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_metalx_proto_msgTypes[21]
+	mi := &file_metalx_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1907,7 +2163,7 @@ func (x *ListTasksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTasksResponse.ProtoReflect.Descriptor instead.
 func (*ListTasksResponse) Descriptor() ([]byte, []int) {
-	return file_metalx_proto_rawDescGZIP(), []int{21}
+	return file_metalx_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ListTasksResponse) GetItems() []*Task {
@@ -1926,7 +2182,7 @@ type ListAuditsResponse struct {
 
 func (x *ListAuditsResponse) Reset() {
 	*x = ListAuditsResponse{}
-	mi := &file_metalx_proto_msgTypes[22]
+	mi := &file_metalx_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1938,7 +2194,7 @@ func (x *ListAuditsResponse) String() string {
 func (*ListAuditsResponse) ProtoMessage() {}
 
 func (x *ListAuditsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_metalx_proto_msgTypes[22]
+	mi := &file_metalx_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1951,7 +2207,7 @@ func (x *ListAuditsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAuditsResponse.ProtoReflect.Descriptor instead.
 func (*ListAuditsResponse) Descriptor() ([]byte, []int) {
-	return file_metalx_proto_rawDescGZIP(), []int{22}
+	return file_metalx_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ListAuditsResponse) GetItems() []*AuditRecord {
@@ -1970,7 +2226,7 @@ type ListAlertsResponse struct {
 
 func (x *ListAlertsResponse) Reset() {
 	*x = ListAlertsResponse{}
-	mi := &file_metalx_proto_msgTypes[23]
+	mi := &file_metalx_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1982,7 +2238,7 @@ func (x *ListAlertsResponse) String() string {
 func (*ListAlertsResponse) ProtoMessage() {}
 
 func (x *ListAlertsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_metalx_proto_msgTypes[23]
+	mi := &file_metalx_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1995,7 +2251,7 @@ func (x *ListAlertsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAlertsResponse.ProtoReflect.Descriptor instead.
 func (*ListAlertsResponse) Descriptor() ([]byte, []int) {
-	return file_metalx_proto_rawDescGZIP(), []int{23}
+	return file_metalx_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ListAlertsResponse) GetItems() []*AlertRecord {
@@ -2016,7 +2272,7 @@ type RunTaskRequest struct {
 
 func (x *RunTaskRequest) Reset() {
 	*x = RunTaskRequest{}
-	mi := &file_metalx_proto_msgTypes[24]
+	mi := &file_metalx_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2028,7 +2284,7 @@ func (x *RunTaskRequest) String() string {
 func (*RunTaskRequest) ProtoMessage() {}
 
 func (x *RunTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_metalx_proto_msgTypes[24]
+	mi := &file_metalx_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2041,7 +2297,7 @@ func (x *RunTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunTaskRequest.ProtoReflect.Descriptor instead.
 func (*RunTaskRequest) Descriptor() ([]byte, []int) {
-	return file_metalx_proto_rawDescGZIP(), []int{24}
+	return file_metalx_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *RunTaskRequest) GetCommand() string {
@@ -2257,7 +2513,40 @@ const file_metalx_proto_rawDesc = "" +
 	"\rdatabase_path\x18\x03 \x01(\tR\fdatabasePath\x12#\n" +
 	"\rshell_enabled\x18\x04 \x01(\bR\fshellEnabled\x12\x14\n" +
 	"\x05store\x18\x05 \x01(\tR\x05store\x12\x1c\n" +
-	"\ttimestamp\x18\x06 \x01(\tR\ttimestamp\"A\n" +
+	"\ttimestamp\x18\x06 \x01(\tR\ttimestamp\"\xee\x05\n" +
+	"\x0fDnsmasqSettings\x12\x18\n" +
+	"\aenabled\x18\x01 \x01(\bR\aenabled\x12)\n" +
+	"\x10listen_interface\x18\x02 \x01(\tR\x0flistenInterface\x12!\n" +
+	"\fbind_address\x18\x03 \x01(\tR\vbindAddress\x12(\n" +
+	"\x10dhcp_range_start\x18\x04 \x01(\tR\x0edhcpRangeStart\x12$\n" +
+	"\x0edhcp_range_end\x18\x05 \x01(\tR\fdhcpRangeEnd\x12&\n" +
+	"\x0fdhcp_lease_time\x18\x06 \x01(\tR\rdhcpLeaseTime\x12\x18\n" +
+	"\agateway\x18\a \x01(\tR\agateway\x12\x1f\n" +
+	"\vdns_servers\x18\b \x03(\tR\n" +
+	"dnsServers\x12\x1b\n" +
+	"\ttftp_root\x18\t \x01(\tR\btftpRoot\x12\x1b\n" +
+	"\tboot_file\x18\n" +
+	" \x01(\tR\bbootFile\x12\x1d\n" +
+	"\n" +
+	"pxe_prompt\x18\v \x01(\tR\tpxePrompt\x12*\n" +
+	"\x11pxe_service_label\x18\f \x01(\tR\x0fpxeServiceLabel\x12\x1f\n" +
+	"\vkernel_path\x18\r \x01(\tR\n" +
+	"kernelPath\x12\x1f\n" +
+	"\vinitrd_path\x18\x0e \x01(\tR\n" +
+	"initrdPath\x12\x1b\n" +
+	"\tboot_args\x18\x0f \x01(\tR\bbootArgs\x12\x1f\n" +
+	"\vnext_server\x18\x10 \x01(\tR\n" +
+	"nextServer\x12\x1f\n" +
+	"\vconfig_path\x18\x11 \x01(\tR\n" +
+	"configPath\x12&\n" +
+	"\x0fpxe_config_path\x18\x12 \x01(\tR\rpxeConfigPath\x12'\n" +
+	"\x0frendered_config\x18\x13 \x01(\tR\x0erenderedConfig\x12*\n" +
+	"\x11rendered_pxe_menu\x18\x14 \x01(\tR\x0frenderedPxeMenu\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x15 \x01(\tR\tupdatedAt\"l\n" +
+	"\x1cUpdateDnsmasqSettingsRequest\x126\n" +
+	"\bsettings\x18\x01 \x01(\v2\x1a.metalx.v1.DnsmasqSettingsR\bsettings\x12\x14\n" +
+	"\x05actor\x18\x02 \x01(\tR\x05actor\"A\n" +
 	"\x11ListNodesResponse\x12,\n" +
 	"\x05items\x18\x01 \x03(\v2\x16.metalx.v1.NodeSummaryR\x05items\":\n" +
 	"\x11ListTasksResponse\x12%\n" +
@@ -2273,7 +2562,7 @@ const file_metalx_proto_rawDesc = "" +
 	"\fAgentService\x124\n" +
 	"\vGetSnapshot\x12\x10.metalx.v1.Empty\x1a\x13.metalx.v1.Snapshot\x12E\n" +
 	"\x0eExecuteCommand\x12\x19.metalx.v1.CommandRequest\x1a\x18.metalx.v1.CommandResult\x12F\n" +
-	"\fOpenTerminal\x12\x18.metalx.v1.TerminalFrame\x1a\x18.metalx.v1.TerminalFrame(\x010\x012\xe4\x04\n" +
+	"\fOpenTerminal\x12\x18.metalx.v1.TerminalFrame\x1a\x18.metalx.v1.TerminalFrame(\x010\x012\x86\x06\n" +
 	"\x11ControllerService\x125\n" +
 	"\x0eReportSnapshot\x12\x13.metalx.v1.Snapshot\x1a\x0e.metalx.v1.Ack\x122\n" +
 	"\n" +
@@ -2286,7 +2575,9 @@ const file_metalx_proto_rawDesc = "" +
 	"ListAudits\x12\x10.metalx.v1.Empty\x1a\x1d.metalx.v1.ListAuditsResponse\x12=\n" +
 	"\n" +
 	"ListAlerts\x12\x10.metalx.v1.Empty\x1a\x1d.metalx.v1.ListAlertsResponse\x128\n" +
-	"\rGetSystemInfo\x12\x10.metalx.v1.Empty\x1a\x15.metalx.v1.SystemInfo\x12F\n" +
+	"\rGetSystemInfo\x12\x10.metalx.v1.Empty\x1a\x15.metalx.v1.SystemInfo\x12B\n" +
+	"\x12GetDnsmasqSettings\x12\x10.metalx.v1.Empty\x1a\x1a.metalx.v1.DnsmasqSettings\x12\\\n" +
+	"\x15UpdateDnsmasqSettings\x12'.metalx.v1.UpdateDnsmasqSettingsRequest\x1a\x1a.metalx.v1.DnsmasqSettings\x12F\n" +
 	"\fOpenTerminal\x12\x18.metalx.v1.TerminalFrame\x1a\x18.metalx.v1.TerminalFrame(\x010\x01B\x1dZ\x1bmetalx.local/proto/metalxpbb\x06proto3"
 
 var (
@@ -2301,33 +2592,35 @@ func file_metalx_proto_rawDescGZIP() []byte {
 	return file_metalx_proto_rawDescData
 }
 
-var file_metalx_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
+var file_metalx_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_metalx_proto_goTypes = []any{
-	(*Empty)(nil),              // 0: metalx.v1.Empty
-	(*Ack)(nil),                // 1: metalx.v1.Ack
-	(*NodeID)(nil),             // 2: metalx.v1.NodeID
-	(*InterfaceInfo)(nil),      // 3: metalx.v1.InterfaceInfo
-	(*FilesystemInfo)(nil),     // 4: metalx.v1.FilesystemInfo
-	(*LoggedUser)(nil),         // 5: metalx.v1.LoggedUser
-	(*ProcessInfo)(nil),        // 6: metalx.v1.ProcessInfo
-	(*AlertInfo)(nil),          // 7: metalx.v1.AlertInfo
-	(*Snapshot)(nil),           // 8: metalx.v1.Snapshot
-	(*CommandRequest)(nil),     // 9: metalx.v1.CommandRequest
-	(*CommandResult)(nil),      // 10: metalx.v1.CommandResult
-	(*TerminalFrame)(nil),      // 11: metalx.v1.TerminalFrame
-	(*NodeSummary)(nil),        // 12: metalx.v1.NodeSummary
-	(*TaskResult)(nil),         // 13: metalx.v1.TaskResult
-	(*NodeDetail)(nil),         // 14: metalx.v1.NodeDetail
-	(*Task)(nil),               // 15: metalx.v1.Task
-	(*AuditRecord)(nil),        // 16: metalx.v1.AuditRecord
-	(*AlertRecord)(nil),        // 17: metalx.v1.AlertRecord
-	(*Summary)(nil),            // 18: metalx.v1.Summary
-	(*SystemInfo)(nil),         // 19: metalx.v1.SystemInfo
-	(*ListNodesResponse)(nil),  // 20: metalx.v1.ListNodesResponse
-	(*ListTasksResponse)(nil),  // 21: metalx.v1.ListTasksResponse
-	(*ListAuditsResponse)(nil), // 22: metalx.v1.ListAuditsResponse
-	(*ListAlertsResponse)(nil), // 23: metalx.v1.ListAlertsResponse
-	(*RunTaskRequest)(nil),     // 24: metalx.v1.RunTaskRequest
+	(*Empty)(nil),                        // 0: metalx.v1.Empty
+	(*Ack)(nil),                          // 1: metalx.v1.Ack
+	(*NodeID)(nil),                       // 2: metalx.v1.NodeID
+	(*InterfaceInfo)(nil),                // 3: metalx.v1.InterfaceInfo
+	(*FilesystemInfo)(nil),               // 4: metalx.v1.FilesystemInfo
+	(*LoggedUser)(nil),                   // 5: metalx.v1.LoggedUser
+	(*ProcessInfo)(nil),                  // 6: metalx.v1.ProcessInfo
+	(*AlertInfo)(nil),                    // 7: metalx.v1.AlertInfo
+	(*Snapshot)(nil),                     // 8: metalx.v1.Snapshot
+	(*CommandRequest)(nil),               // 9: metalx.v1.CommandRequest
+	(*CommandResult)(nil),                // 10: metalx.v1.CommandResult
+	(*TerminalFrame)(nil),                // 11: metalx.v1.TerminalFrame
+	(*NodeSummary)(nil),                  // 12: metalx.v1.NodeSummary
+	(*TaskResult)(nil),                   // 13: metalx.v1.TaskResult
+	(*NodeDetail)(nil),                   // 14: metalx.v1.NodeDetail
+	(*Task)(nil),                         // 15: metalx.v1.Task
+	(*AuditRecord)(nil),                  // 16: metalx.v1.AuditRecord
+	(*AlertRecord)(nil),                  // 17: metalx.v1.AlertRecord
+	(*Summary)(nil),                      // 18: metalx.v1.Summary
+	(*SystemInfo)(nil),                   // 19: metalx.v1.SystemInfo
+	(*DnsmasqSettings)(nil),              // 20: metalx.v1.DnsmasqSettings
+	(*UpdateDnsmasqSettingsRequest)(nil), // 21: metalx.v1.UpdateDnsmasqSettingsRequest
+	(*ListNodesResponse)(nil),            // 22: metalx.v1.ListNodesResponse
+	(*ListTasksResponse)(nil),            // 23: metalx.v1.ListTasksResponse
+	(*ListAuditsResponse)(nil),           // 24: metalx.v1.ListAuditsResponse
+	(*ListAlertsResponse)(nil),           // 25: metalx.v1.ListAlertsResponse
+	(*RunTaskRequest)(nil),               // 26: metalx.v1.RunTaskRequest
 }
 var file_metalx_proto_depIdxs = []int32{
 	3,  // 0: metalx.v1.Snapshot.interfaces:type_name -> metalx.v1.InterfaceInfo
@@ -2344,41 +2637,46 @@ var file_metalx_proto_depIdxs = []int32{
 	13, // 11: metalx.v1.NodeDetail.recent_commands:type_name -> metalx.v1.TaskResult
 	13, // 12: metalx.v1.Task.results:type_name -> metalx.v1.TaskResult
 	12, // 13: metalx.v1.Summary.hot_nodes:type_name -> metalx.v1.NodeSummary
-	12, // 14: metalx.v1.ListNodesResponse.items:type_name -> metalx.v1.NodeSummary
-	15, // 15: metalx.v1.ListTasksResponse.items:type_name -> metalx.v1.Task
-	16, // 16: metalx.v1.ListAuditsResponse.items:type_name -> metalx.v1.AuditRecord
-	17, // 17: metalx.v1.ListAlertsResponse.items:type_name -> metalx.v1.AlertRecord
-	0,  // 18: metalx.v1.AgentService.GetSnapshot:input_type -> metalx.v1.Empty
-	9,  // 19: metalx.v1.AgentService.ExecuteCommand:input_type -> metalx.v1.CommandRequest
-	11, // 20: metalx.v1.AgentService.OpenTerminal:input_type -> metalx.v1.TerminalFrame
-	8,  // 21: metalx.v1.ControllerService.ReportSnapshot:input_type -> metalx.v1.Snapshot
-	0,  // 22: metalx.v1.ControllerService.GetSummary:input_type -> metalx.v1.Empty
-	0,  // 23: metalx.v1.ControllerService.ListNodes:input_type -> metalx.v1.Empty
-	2,  // 24: metalx.v1.ControllerService.GetNode:input_type -> metalx.v1.NodeID
-	24, // 25: metalx.v1.ControllerService.RunTask:input_type -> metalx.v1.RunTaskRequest
-	0,  // 26: metalx.v1.ControllerService.ListTasks:input_type -> metalx.v1.Empty
-	0,  // 27: metalx.v1.ControllerService.ListAudits:input_type -> metalx.v1.Empty
-	0,  // 28: metalx.v1.ControllerService.ListAlerts:input_type -> metalx.v1.Empty
-	0,  // 29: metalx.v1.ControllerService.GetSystemInfo:input_type -> metalx.v1.Empty
-	11, // 30: metalx.v1.ControllerService.OpenTerminal:input_type -> metalx.v1.TerminalFrame
-	8,  // 31: metalx.v1.AgentService.GetSnapshot:output_type -> metalx.v1.Snapshot
-	10, // 32: metalx.v1.AgentService.ExecuteCommand:output_type -> metalx.v1.CommandResult
-	11, // 33: metalx.v1.AgentService.OpenTerminal:output_type -> metalx.v1.TerminalFrame
-	1,  // 34: metalx.v1.ControllerService.ReportSnapshot:output_type -> metalx.v1.Ack
-	18, // 35: metalx.v1.ControllerService.GetSummary:output_type -> metalx.v1.Summary
-	20, // 36: metalx.v1.ControllerService.ListNodes:output_type -> metalx.v1.ListNodesResponse
-	14, // 37: metalx.v1.ControllerService.GetNode:output_type -> metalx.v1.NodeDetail
-	15, // 38: metalx.v1.ControllerService.RunTask:output_type -> metalx.v1.Task
-	21, // 39: metalx.v1.ControllerService.ListTasks:output_type -> metalx.v1.ListTasksResponse
-	22, // 40: metalx.v1.ControllerService.ListAudits:output_type -> metalx.v1.ListAuditsResponse
-	23, // 41: metalx.v1.ControllerService.ListAlerts:output_type -> metalx.v1.ListAlertsResponse
-	19, // 42: metalx.v1.ControllerService.GetSystemInfo:output_type -> metalx.v1.SystemInfo
-	11, // 43: metalx.v1.ControllerService.OpenTerminal:output_type -> metalx.v1.TerminalFrame
-	31, // [31:44] is the sub-list for method output_type
-	18, // [18:31] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	20, // 14: metalx.v1.UpdateDnsmasqSettingsRequest.settings:type_name -> metalx.v1.DnsmasqSettings
+	12, // 15: metalx.v1.ListNodesResponse.items:type_name -> metalx.v1.NodeSummary
+	15, // 16: metalx.v1.ListTasksResponse.items:type_name -> metalx.v1.Task
+	16, // 17: metalx.v1.ListAuditsResponse.items:type_name -> metalx.v1.AuditRecord
+	17, // 18: metalx.v1.ListAlertsResponse.items:type_name -> metalx.v1.AlertRecord
+	0,  // 19: metalx.v1.AgentService.GetSnapshot:input_type -> metalx.v1.Empty
+	9,  // 20: metalx.v1.AgentService.ExecuteCommand:input_type -> metalx.v1.CommandRequest
+	11, // 21: metalx.v1.AgentService.OpenTerminal:input_type -> metalx.v1.TerminalFrame
+	8,  // 22: metalx.v1.ControllerService.ReportSnapshot:input_type -> metalx.v1.Snapshot
+	0,  // 23: metalx.v1.ControllerService.GetSummary:input_type -> metalx.v1.Empty
+	0,  // 24: metalx.v1.ControllerService.ListNodes:input_type -> metalx.v1.Empty
+	2,  // 25: metalx.v1.ControllerService.GetNode:input_type -> metalx.v1.NodeID
+	26, // 26: metalx.v1.ControllerService.RunTask:input_type -> metalx.v1.RunTaskRequest
+	0,  // 27: metalx.v1.ControllerService.ListTasks:input_type -> metalx.v1.Empty
+	0,  // 28: metalx.v1.ControllerService.ListAudits:input_type -> metalx.v1.Empty
+	0,  // 29: metalx.v1.ControllerService.ListAlerts:input_type -> metalx.v1.Empty
+	0,  // 30: metalx.v1.ControllerService.GetSystemInfo:input_type -> metalx.v1.Empty
+	0,  // 31: metalx.v1.ControllerService.GetDnsmasqSettings:input_type -> metalx.v1.Empty
+	21, // 32: metalx.v1.ControllerService.UpdateDnsmasqSettings:input_type -> metalx.v1.UpdateDnsmasqSettingsRequest
+	11, // 33: metalx.v1.ControllerService.OpenTerminal:input_type -> metalx.v1.TerminalFrame
+	8,  // 34: metalx.v1.AgentService.GetSnapshot:output_type -> metalx.v1.Snapshot
+	10, // 35: metalx.v1.AgentService.ExecuteCommand:output_type -> metalx.v1.CommandResult
+	11, // 36: metalx.v1.AgentService.OpenTerminal:output_type -> metalx.v1.TerminalFrame
+	1,  // 37: metalx.v1.ControllerService.ReportSnapshot:output_type -> metalx.v1.Ack
+	18, // 38: metalx.v1.ControllerService.GetSummary:output_type -> metalx.v1.Summary
+	22, // 39: metalx.v1.ControllerService.ListNodes:output_type -> metalx.v1.ListNodesResponse
+	14, // 40: metalx.v1.ControllerService.GetNode:output_type -> metalx.v1.NodeDetail
+	15, // 41: metalx.v1.ControllerService.RunTask:output_type -> metalx.v1.Task
+	23, // 42: metalx.v1.ControllerService.ListTasks:output_type -> metalx.v1.ListTasksResponse
+	24, // 43: metalx.v1.ControllerService.ListAudits:output_type -> metalx.v1.ListAuditsResponse
+	25, // 44: metalx.v1.ControllerService.ListAlerts:output_type -> metalx.v1.ListAlertsResponse
+	19, // 45: metalx.v1.ControllerService.GetSystemInfo:output_type -> metalx.v1.SystemInfo
+	20, // 46: metalx.v1.ControllerService.GetDnsmasqSettings:output_type -> metalx.v1.DnsmasqSettings
+	20, // 47: metalx.v1.ControllerService.UpdateDnsmasqSettings:output_type -> metalx.v1.DnsmasqSettings
+	11, // 48: metalx.v1.ControllerService.OpenTerminal:output_type -> metalx.v1.TerminalFrame
+	34, // [34:49] is the sub-list for method output_type
+	19, // [19:34] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_metalx_proto_init() }
@@ -2392,7 +2690,7 @@ func file_metalx_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_metalx_proto_rawDesc), len(file_metalx_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   25,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

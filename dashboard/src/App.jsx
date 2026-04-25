@@ -65,6 +65,34 @@ function yesNo(value) {
   return value ? '启用' : '关闭'
 }
 
+function toDnsmasqDraft(settings) {
+  return {
+    enabled: settings?.enabled ?? false,
+    listenInterface: settings?.listenInterface ?? 'eth0',
+    bindAddress: settings?.bindAddress ?? '',
+    dhcpRangeStart: settings?.dhcpRangeStart ?? '',
+    dhcpRangeEnd: settings?.dhcpRangeEnd ?? '',
+    dhcpLeaseTime: settings?.dhcpLeaseTime ?? '12h',
+    gateway: settings?.gateway ?? '',
+    dnsServersText: (settings?.dnsServers ?? []).join(', '),
+    tftpRoot: settings?.tftpRoot ?? '',
+    bootFile: settings?.bootFile ?? 'pxelinux.0',
+    pxePrompt: settings?.pxePrompt ?? '',
+    pxeServiceLabel: settings?.pxeServiceLabel ?? '',
+    kernelPath: settings?.kernelPath ?? '',
+    initrdPath: settings?.initrdPath ?? '',
+    bootArgs: settings?.bootArgs ?? '',
+    nextServer: settings?.nextServer ?? '',
+  }
+}
+
+function parseDnsServers(value) {
+  return value
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
 async function request(path, token, options = {}) {
   const response = await fetch(`${apiBase}${path}`, {
     ...options,
@@ -106,6 +134,12 @@ export default function App() {
   const [terminalStatus, setTerminalStatus] = useState('未连接')
   const [terminalSessionId, setTerminalSessionId] = useState('')
   const [terminalSocket, setTerminalSocket] = useState(null)
+  const [lastRefreshAt, setLastRefreshAt] = useState('')
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [dnsmasqSettings, setDnsmasqSettings] = useState(null)
+  const [dnsmasqDraft, setDnsmasqDraft] = useState(() => toDnsmasqDraft(null))
+  const [dnsmasqDirty, setDnsmasqDirty] = useState(false)
+  const [dnsmasqSaving, setDnsmasqSaving] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -141,30 +175,58 @@ export default function App() {
   useEffect(() => {
     if (!token) return
     let cancelled = false
+    let timerId = 0
+    let inFlight = false
 
     async function load() {
+      if (cancelled || inFlight) {
+        return
+      }
+
+      inFlight = true
+      setIsRefreshing(true)
       try {
-        const [summaryData, nodesData, tasksData, auditsData, alertsData, systemData] = await Promise.all([
+        const [summaryData, nodesData, tasksData, auditsData, alertsData, systemData, dnsmasqData] = await Promise.all([
           request('/api/summary', token),
           request('/api/nodes', token),
           request('/api/tasks', token),
           request('/api/audits', token),
           request('/api/alerts', token),
           request('/api/system', token),
+          request('/api/system/dnsmasq', token),
         ])
 
         if (cancelled) return
 
         const nextNodes = nodesData.items ?? []
+        const resolvedNodeId = nextNodes.some((node) => node.id === selectedNodeId)
+          ? selectedNodeId
+          : nextNodes.find((node) => node.online)?.id
+            || nextNodes[0]?.id
+            || ''
+        const detailData = resolvedNodeId
+          ? await request(`/api/nodes/${resolvedNodeId}`, token)
+          : null
+
+        if (cancelled) return
+
         setSummary(summaryData)
         setNodes(nextNodes)
         setTasks(tasksData.items ?? [])
         setAudits(auditsData.items ?? [])
         setAlerts(alertsData.items ?? [])
         setSystem(systemData)
-        const preferredNode = nextNodes.find((node) => node.online) ?? nextNodes[0]
-        setSelectedNodeId((current) => current || preferredNode?.id || '')
-        setSelectedTargets((current) => current.length > 0 ? current : (preferredNode?.id ? [preferredNode.id] : []))
+        setDnsmasqSettings(dnsmasqData)
+        setNodeDetail(detailData)
+        setSelectedNodeId(resolvedNodeId)
+        setSelectedTargets((current) => {
+          const nextSelected = current.filter((target) => nextNodes.some((node) => node.id === target))
+          if (nextSelected.length > 0) {
+            return nextSelected
+          }
+          return resolvedNodeId ? [resolvedNodeId] : []
+        })
+        setLastRefreshAt(new Date().toISOString())
         setLoading(false)
         setError('')
       } catch (err) {
@@ -172,41 +234,26 @@ export default function App() {
           setLoading(false)
           setError(`加载失败：${err.message}`)
         }
+      } finally {
+        inFlight = false
+        if (!cancelled) {
+          setIsRefreshing(false)
+          timerId = window.setTimeout(load, 1000)
+        }
       }
     }
 
     load()
-    const timer = window.setInterval(load, 10000)
     return () => {
       cancelled = true
-      window.clearInterval(timer)
-    }
-  }, [token])
-
-  useEffect(() => {
-    if (!token || !selectedNodeId) return
-    let cancelled = false
-
-    async function loadDetail() {
-      try {
-        const payload = await request(`/api/nodes/${selectedNodeId}`, token)
-        if (!cancelled) {
-          setNodeDetail(payload)
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(`节点详情加载失败：${err.message}`)
-        }
-      }
-    }
-
-    loadDetail()
-    const timer = window.setInterval(loadDetail, 10000)
-    return () => {
-      cancelled = true
-      window.clearInterval(timer)
+      window.clearTimeout(timerId)
     }
   }, [token, selectedNodeId])
+
+  useEffect(() => {
+    if (!dnsmasqSettings || dnsmasqDirty) return
+    setDnsmasqDraft(toDnsmasqDraft(dnsmasqSettings))
+  }, [dnsmasqSettings, dnsmasqDirty])
 
   useEffect(() => () => {
     if (terminalSocket) {
@@ -327,6 +374,48 @@ export default function App() {
     setTerminalInput('')
   }
 
+  function updateDnsmasqDraft(field, value) {
+    setDnsmasqDirty(true)
+    setDnsmasqDraft((current) => ({ ...current, [field]: value }))
+  }
+
+  async function saveDnsmasqSettings() {
+    if (!token) return
+    setDnsmasqSaving(true)
+    setError('')
+    try {
+      const payload = await request('/api/system/dnsmasq', token, {
+        method: 'PUT',
+        body: JSON.stringify({
+          enabled: dnsmasqDraft.enabled,
+          listenInterface: dnsmasqDraft.listenInterface.trim(),
+          bindAddress: dnsmasqDraft.bindAddress.trim(),
+          dhcpRangeStart: dnsmasqDraft.dhcpRangeStart.trim(),
+          dhcpRangeEnd: dnsmasqDraft.dhcpRangeEnd.trim(),
+          dhcpLeaseTime: dnsmasqDraft.dhcpLeaseTime.trim(),
+          gateway: dnsmasqDraft.gateway.trim(),
+          dnsServers: parseDnsServers(dnsmasqDraft.dnsServersText),
+          tftpRoot: dnsmasqDraft.tftpRoot.trim(),
+          bootFile: dnsmasqDraft.bootFile.trim(),
+          pxePrompt: dnsmasqDraft.pxePrompt.trim(),
+          pxeServiceLabel: dnsmasqDraft.pxeServiceLabel.trim(),
+          kernelPath: dnsmasqDraft.kernelPath.trim(),
+          initrdPath: dnsmasqDraft.initrdPath.trim(),
+          bootArgs: dnsmasqDraft.bootArgs.trim(),
+          nextServer: dnsmasqDraft.nextServer.trim(),
+          actor: 'dashboard',
+        }),
+      })
+      setDnsmasqSettings(payload)
+      setDnsmasqDraft(toDnsmasqDraft(payload))
+      setDnsmasqDirty(false)
+    } catch (err) {
+      setError(`dnsmasq 配置保存失败：${err.message}`)
+    } finally {
+      setDnsmasqSaving(false)
+    }
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -356,7 +445,14 @@ export default function App() {
 
       <main className="content">
         <section className="hero">
-          <div><h2>集群实时总览</h2></div>
+          <div>
+            <h2>集群实时总览</h2>
+            <p className="hero__meta">
+              页面刷新频率：1 秒
+              <span>状态：{isRefreshing ? '刷新中' : '实时更新中'}</span>
+              <span>最近刷新：{formatTime(lastRefreshAt)}</span>
+            </p>
+          </div>
           <div className="hero__actions">
             <button className="button button--primary" onClick={() => setActiveSection('终端与命令')}>
               执行命令
@@ -635,6 +731,118 @@ export default function App() {
                 <div className="mini-stat"><span>数据库路径</span><strong>{system.databasePath}</strong></div>
                 <div className="mini-stat"><span>系统时间</span><strong>{formatTime(system.timestamp)}</strong></div>
               </div>
+
+              {dnsmasqSettings ? (
+                <div className="control-stack">
+                  <div className="panel-subtitle">dnsmasq / PXE 引导配置</div>
+                  <div className="form-grid">
+                    <label className="field">
+                      <span>启用 PXE</span>
+                      <label className="toggle">
+                        <input
+                          type="checkbox"
+                          checked={dnsmasqDraft.enabled}
+                          onChange={(event) => updateDnsmasqDraft('enabled', event.target.checked)}
+                        />
+                        <span>{dnsmasqDraft.enabled ? '已启用' : '未启用'}</span>
+                      </label>
+                    </label>
+                    <label className="field">
+                      <span>监听网卡</span>
+                      <input className="text-input" value={dnsmasqDraft.listenInterface} onChange={(event) => updateDnsmasqDraft('listenInterface', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>绑定地址</span>
+                      <input className="text-input" value={dnsmasqDraft.bindAddress} onChange={(event) => updateDnsmasqDraft('bindAddress', event.target.value)} placeholder="可选，例如 192.168.56.1" />
+                    </label>
+                    <label className="field">
+                      <span>下一跳服务器</span>
+                      <input className="text-input" value={dnsmasqDraft.nextServer} onChange={(event) => updateDnsmasqDraft('nextServer', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>DHCP 起始 IP</span>
+                      <input className="text-input" value={dnsmasqDraft.dhcpRangeStart} onChange={(event) => updateDnsmasqDraft('dhcpRangeStart', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>DHCP 结束 IP</span>
+                      <input className="text-input" value={dnsmasqDraft.dhcpRangeEnd} onChange={(event) => updateDnsmasqDraft('dhcpRangeEnd', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>租期</span>
+                      <input className="text-input" value={dnsmasqDraft.dhcpLeaseTime} onChange={(event) => updateDnsmasqDraft('dhcpLeaseTime', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>网关</span>
+                      <input className="text-input" value={dnsmasqDraft.gateway} onChange={(event) => updateDnsmasqDraft('gateway', event.target.value)} />
+                    </label>
+                    <label className="field field--full">
+                      <span>DNS 服务器</span>
+                      <textarea value={dnsmasqDraft.dnsServersText} onChange={(event) => updateDnsmasqDraft('dnsServersText', event.target.value)} rows={2} placeholder="多个地址使用英文逗号或换行分隔" />
+                    </label>
+                    <label className="field field--full">
+                      <span>TFTP 根目录</span>
+                      <input className="text-input" value={dnsmasqDraft.tftpRoot} onChange={(event) => updateDnsmasqDraft('tftpRoot', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>启动文件</span>
+                      <input className="text-input" value={dnsmasqDraft.bootFile} onChange={(event) => updateDnsmasqDraft('bootFile', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>PXE 菜单名称</span>
+                      <input className="text-input" value={dnsmasqDraft.pxeServiceLabel} onChange={(event) => updateDnsmasqDraft('pxeServiceLabel', event.target.value)} />
+                    </label>
+                    <label className="field field--full">
+                      <span>PXE 提示语</span>
+                      <input className="text-input" value={dnsmasqDraft.pxePrompt} onChange={(event) => updateDnsmasqDraft('pxePrompt', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>Kernel 路径</span>
+                      <input className="text-input" value={dnsmasqDraft.kernelPath} onChange={(event) => updateDnsmasqDraft('kernelPath', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>Initrd 路径</span>
+                      <input className="text-input" value={dnsmasqDraft.initrdPath} onChange={(event) => updateDnsmasqDraft('initrdPath', event.target.value)} />
+                    </label>
+                    <label className="field field--full">
+                      <span>内核启动参数</span>
+                      <textarea value={dnsmasqDraft.bootArgs} onChange={(event) => updateDnsmasqDraft('bootArgs', event.target.value)} rows={3} />
+                    </label>
+                  </div>
+
+                  <div className="hero__actions">
+                    <button className="button button--primary" onClick={saveDnsmasqSettings} disabled={dnsmasqSaving}>
+                      {dnsmasqSaving ? '保存中...' : '保存 dnsmasq 配置'}
+                    </button>
+                    <button
+                      className="button"
+                      onClick={() => {
+                        setDnsmasqDraft(toDnsmasqDraft(dnsmasqSettings))
+                        setDnsmasqDirty(false)
+                      }}
+                      disabled={!dnsmasqDirty || dnsmasqSaving}
+                    >
+                      还原未保存修改
+                    </button>
+                  </div>
+
+                  <div className="overview-grid">
+                    <div className="mini-stat"><span>配置文件</span><strong>{dnsmasqSettings.configPath}</strong></div>
+                    <div className="mini-stat"><span>PXE 菜单</span><strong>{dnsmasqSettings.pxeConfigPath}</strong></div>
+                    <div className="mini-stat"><span>最近更新时间</span><strong>{formatTime(dnsmasqSettings.updatedAt)}</strong></div>
+                  </div>
+
+                  <div className="dual-list">
+                    <div>
+                      <h3>dnsmasq.conf 预览</h3>
+                      <pre>{dnsmasqSettings.renderedConfig}</pre>
+                    </div>
+                    <div>
+                      <h3>PXE 菜单预览</h3>
+                      <pre>{dnsmasqSettings.renderedPxeMenu}</pre>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </Panel>
           )}
 

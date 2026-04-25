@@ -84,7 +84,8 @@ h3 {
 
 .nav-list__item,
 .button,
-.field textarea {
+.field textarea,
+.text-input {
   border: 1px solid var(--line);
   background: var(--panel);
   color: var(--text);
@@ -139,6 +140,20 @@ h3 {
   gap: 20px;
   padding: 28px;
   border-radius: 24px;
+}
+
+.hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.panel-subtitle {
+  color: var(--muted);
+  font-size: 0.92rem;
 }
 
 .hero__actions {
@@ -335,6 +350,28 @@ tbody tr {
   resize: vertical;
 }
 
+.text-input {
+  width: 100%;
+  padding: 14px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.field--full {
+  grid-column: 1 / -1;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+}
+
 .terminal-input {
   padding: 14px;
   border: 1px solid var(--line);
@@ -408,7 +445,8 @@ pre {
   .stats-grid,
   .content-grid,
   .overview-grid,
-  .dual-list {
+  .dual-list,
+  .form-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -418,7 +456,8 @@ pre {
   .content-grid,
   .stats-grid,
   .overview-grid,
-  .dual-list {
+  .dual-list,
+  .form-grid {
     grid-template-columns: 1fr;
   }
 
