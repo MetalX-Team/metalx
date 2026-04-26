@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { Panel } from './components/Panel'
 import { StatCard } from './components/StatCard'
 
-const sections = ['总览', '节点', '节点详情', '终端与命令', '任务', '告警', '审计', '系统设置', '装机模板', '装机任务']
+const sections = ['总览', 'AIChat', '节点', '节点详情', '终端与命令', '任务', '告警', '审计', '系统设置', '装机模板', '装机任务']
 const apiBase = import.meta.env.VITE_API_BASE ?? ''
+const sessionStorageKey = 'metalx.session'
 const wsBase = (() => {
   if (!apiBase) {
     return window.location.origin.replace(/^http/, 'ws')
@@ -96,6 +97,15 @@ function parseLines(value) {
     .filter(Boolean)
 }
 
+const agentCapabilities = [
+  { id: 'inspect', label: '观测集群', cli: 'mxctl', description: '读取 summary、nodes、tasks、alerts、audits 并定位异常节点' },
+  { id: 'command', label: '执行命令', cli: 'mxagent', description: '通过 controller 将命令下发到选中 agent，保留任务和审计记录' },
+  { id: 'terminal', label: '接管终端', cli: 'mxagent', description: '打开 WebSocket 终端会话，用于逐步排障' },
+  { id: 'pxe', label: 'PXE 配置', cli: 'mxctl', description: '维护 dnsmasq、TFTP、PXE 菜单和启动参数' },
+  { id: 'install', label: '装机编排', cli: 'mxctl', description: '选择装机模板，创建带 token 的 unattended install job' },
+  { id: 'settings', label: '运行配置', cli: 'mxapi', description: '调整 WebAPI、dashboard、agent 上报和认证相关配置' },
+]
+
 function toInstallProfileDraft(profile) {
   return {
     id: profile?.id ?? '',
@@ -142,6 +152,11 @@ function toRuntimeDraft(settings) {
     agentListenAddress: settings?.agentListenAddress ?? ':18081',
     agentGrpcListenAddress: settings?.agentGrpcListenAddress ?? ':19091',
     agentReportIntervalSeconds: settings?.agentReportIntervalSeconds ?? 1,
+    llmBaseUrl: settings?.llmBaseUrl ?? 'https://api.openai.com/v1',
+    llmModel: settings?.llmModel ?? 'gpt-4o-mini',
+    llmTemperature: settings?.llmTemperature ?? 0.2,
+    llmApiKey: '',
+    llmApiKeyConfigured: settings?.llmApiKeyConfigured ?? false,
     adminUser: settings?.adminUser ?? '',
     adminPassword: '',
   }
@@ -165,10 +180,28 @@ async function request(path, token, options = {}) {
   return response.json()
 }
 
+function loadSavedSession() {
+  try {
+    const raw = window.localStorage.getItem(sessionStorageKey)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+function saveSession(session) {
+  window.localStorage.setItem(sessionStorageKey, JSON.stringify(session))
+}
+
+function clearSession() {
+  window.localStorage.removeItem(sessionStorageKey)
+}
+
 export default function App() {
+  const savedSession = loadSavedSession()
   const [activeSection, setActiveSection] = useState('总览')
-  const [token, setToken] = useState('')
-  const [loginUsername, setLoginUsername] = useState('')
+  const [token, setToken] = useState(savedSession?.token ?? '')
+  const [loginUsername, setLoginUsername] = useState(savedSession?.user ?? '')
   const [loginPassword, setLoginPassword] = useState('')
   const [isLoggingIn, setIsLoggingIn] = useState(false)
   const [summary, setSummary] = useState(null)
@@ -209,6 +242,17 @@ export default function App() {
   const [profileSaving, setProfileSaving] = useState(false)
   const [jobDraft, setJobDraft] = useState({ profileId: '', macAddress: '', hostname: '', nodeId: '' })
   const [jobSubmitting, setJobSubmitting] = useState(false)
+  const [chatInput, setChatInput] = useState('检查集群健康状态')
+  const [chatHistory, setChatHistory] = useState([
+    {
+      role: 'agent',
+      content: 'AIChat 已接入真实 OpenAI-compatible LLM。配置大模型端点和 API Key 后，我可以通过 WebAPI 工具调用完整操控 controller。',
+    },
+  ])
+  const [agentPlan, setAgentPlan] = useState(null)
+  const [agentBusy, setAgentBusy] = useState(false)
+  const [allowAgentTools, setAllowAgentTools] = useState(true)
+  const [agentToolResults, setAgentToolResults] = useState([])
   const refreshIntervalMs = Math.max(Number(runtimeSettings?.dashboardRefreshIntervalMs ?? 1000), 500)
   const sectionTitle = activeSection === '总览' ? '集群实时总览' : activeSection
 
@@ -283,6 +327,10 @@ export default function App() {
         if (!cancelled) {
           setLoading(false)
           setError(`加载失败：${err.message}`)
+          if (err.message.includes('401') || err.message.includes('令牌无效') || err.message.includes('缺少鉴权令牌')) {
+            clearSession()
+            setToken('')
+          }
         }
       } finally {
         inFlight = false
@@ -399,12 +447,27 @@ export default function App() {
       }
       const payload = await response.json()
       setToken(payload.token)
+      saveSession({ token: payload.token, user: payload.user, loginAt: new Date().toISOString() })
+      setLoginUsername(payload.user)
       setLoginPassword('')
       setLoading(true)
     } catch (err) {
       setError(`登录失败：${err.message}`)
     } finally {
       setIsLoggingIn(false)
+    }
+  }
+
+  function logout() {
+    clearSession()
+    setToken('')
+    setLoginPassword('')
+    setActiveSection('总览')
+    setTerminalOutput('')
+    setTerminalConnected(false)
+    if (terminalSocket) {
+      terminalSocket.close()
+      setTerminalSocket(null)
     }
   }
 
@@ -501,6 +564,7 @@ export default function App() {
           discoveryPort: Number(runtimeDraft.discoveryPort),
           dashboardRefreshIntervalMs: Number(runtimeDraft.dashboardRefreshIntervalMs),
           agentReportIntervalSeconds: Number(runtimeDraft.agentReportIntervalSeconds),
+          llmTemperature: Number(runtimeDraft.llmTemperature),
           actor: 'dashboard',
         }),
       })
@@ -622,49 +686,105 @@ export default function App() {
     }
   }
 
+  async function planAgentAction() {
+    if (!chatInput.trim()) return
+    setActiveSection('AIChat')
+    setAgentBusy(true)
+    setError('')
+    const userMessage = { role: 'user', content: chatInput.trim() }
+    const nextHistory = [...chatHistory, userMessage]
+    setChatHistory(nextHistory)
+    setChatInput('')
+    setAgentPlan(null)
+    try {
+      const payload = await request('/api/aichat', token, {
+        method: 'POST',
+        body: JSON.stringify({
+          allowTools: allowAgentTools,
+          messages: nextHistory.map((message) => ({
+            role: message.role === 'agent' ? 'assistant' : message.role,
+            content: message.content,
+          })),
+        }),
+      })
+      const assistant = payload.message
+      setAgentToolResults(payload.toolResults ?? [])
+      setChatHistory((current) => [
+        ...current,
+        {
+          role: 'agent',
+          content: assistant?.content || (assistant?.tool_calls?.length ? '已完成工具调用，正在整理结果。' : '模型未返回内容。'),
+        },
+      ])
+      setAgentPlan({
+        title: 'LLM Agent 执行结果',
+        intent: allowAgentTools ? 'controller-tools' : 'chat-only',
+        summary: assistant?.content || '模型已返回工具调用结果。',
+        steps: (payload.toolResults ?? []).map((item) => `${item.name}: ${item.result?.ok ? '成功' : item.result?.error || '失败'}`),
+        risk: allowAgentTools ? '本轮允许模型调用 controller 工具，所有写操作会进入 controller 任务或审计链路。' : '本轮未允许工具调用，不会修改 controller。',
+      })
+      if (allowAgentTools) {
+        const [tasksData, auditsData, alertsData, profilesData, jobsData] = await Promise.all([
+          request('/api/tasks', token),
+          request('/api/audits', token),
+          request('/api/alerts', token),
+          request('/api/install/profiles', token),
+          request('/api/install/jobs', token),
+        ])
+        setTasks(tasksData.items ?? [])
+        setAudits(auditsData.items ?? [])
+        setAlerts(alertsData.items ?? [])
+        setInstallProfiles(profilesData.items ?? [])
+        setInstallJobs(jobsData.items ?? [])
+      }
+    } catch (err) {
+      setError(`AIChat 调用失败：${err.message}`)
+      setChatHistory((current) => [...current, { role: 'agent', content: `调用失败：${err.message}` }])
+    } finally {
+      setAgentBusy(false)
+    }
+  }
+
   if (!token) {
     return (
       <div className="app-shell app-shell--auth">
-        <main className="content content--auth">
-          <section className="hero hero--auth">
-            <div>
-              <p className="eyebrow">Control Plane Access</p>
-              <h2>MetalX 登录</h2>
-              <p className="hero__meta">
-                登录后可在系统设置中修改运行配置与管理员凭证
-              </p>
+        <main className="auth-page">
+          <section className="auth-card">
+            <div className="auth-card__intro">
+              <p className="eyebrow">MetalX Control Plane</p>
+              <h1>登录运维总控台</h1>
+              <p>登录态会保存在当前浏览器，下次打开无需重复输入凭据。可在主页面随时退出登录。</p>
+            </div>
+            {error ? <div className="banner banner--error">{error}</div> : null}
+            <div className="control-stack">
+              <label className="field">
+                <span>用户名</span>
+                <input className="text-input" value={loginUsername} onChange={(event) => setLoginUsername(event.target.value)} autoComplete="username" />
+              </label>
+              <label className="field">
+                <span>密码</span>
+                <input
+                  className="text-input"
+                  type="password"
+                  value={loginPassword}
+                  onChange={(event) => setLoginPassword(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
+                      login()
+                    }
+                  }}
+                  autoComplete="current-password"
+                />
+              </label>
+              <button className="button button--primary button--block" onClick={login} disabled={isLoggingIn}>
+                {isLoggingIn ? '登录中...' : '登录'}
+              </button>
             </div>
           </section>
-          {error ? <div className="banner banner--error">{error}</div> : null}
-          <section className="content-grid">
-            <Panel title="管理员登录">
-              <div className="control-stack">
-                <label className="field">
-                  <span>用户名</span>
-                  <input className="text-input" value={loginUsername} onChange={(event) => setLoginUsername(event.target.value)} />
-                </label>
-                <label className="field">
-                  <span>密码</span>
-                  <input
-                    className="text-input"
-                    type="password"
-                    value={loginPassword}
-                    onChange={(event) => setLoginPassword(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        event.preventDefault()
-                        login()
-                      }
-                    }}
-                  />
-                </label>
-                <div className="hero__actions">
-                  <button className="button button--primary" onClick={login} disabled={isLoggingIn}>
-                    {isLoggingIn ? '登录中...' : '登录'}
-                  </button>
-                </div>
-              </div>
-            </Panel>
+          <section className="auth-aside">
+            <span>Agent Ready</span>
+            <strong>AIChat 可通过 mxapi 调用 LLM，并使用 controller 工具完成节点、PXE 和装机编排。</strong>
           </section>
         </main>
       </div>
@@ -677,8 +797,7 @@ export default function App() {
         <div className="brand">
           <p className="eyebrow">MetalX</p>
           <h1>运维总控台</h1>
-          <p className="sidebar__copy">白色工作台视图，聚焦节点、装机和实时执行路径。</p>
-        </div>
+          </div>
 
         <nav className="nav-list">
           {sections.map((section) => (
@@ -705,6 +824,7 @@ export default function App() {
             <span>当前节点</span>
             <strong>{selectedNode?.name ?? '-'}</strong>
           </div>
+          <button className="button button--block" onClick={logout}>退出登录</button>
         </div>
       </aside>
 
@@ -721,6 +841,9 @@ export default function App() {
             </p>
           </div>
           <div className="hero__actions">
+            <button className="button button--primary" onClick={() => setActiveSection('AIChat')}>
+              打开 AIChat
+            </button>
             <button className="button button--primary" onClick={() => setActiveSection('终端与命令')}>
               执行命令
             </button>
@@ -747,6 +870,94 @@ export default function App() {
         ) : null}
 
         <section className="content-grid">
+          {activeSection === 'AIChat' && (
+            <>
+              <Panel title="AIChat Agent" subtitle="自然语言计划，确认后调用现有 CLI/API 能力">
+                <div className="agent-layout">
+                  <div className="chat-thread">
+                    {chatHistory.map((message, index) => (
+                      <div key={`${message.role}-${index}`} className={`chat-bubble chat-bubble--${message.role}`}>
+                        <span>{message.role === 'user' ? '你' : 'Agent'}</span>
+                        <p>{message.content}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="control-stack">
+                    <label className="field">
+                      <span>告诉 Agent 你的目标</span>
+                      <textarea
+                        value={chatInput}
+                        onChange={(event) => setChatInput(event.target.value)}
+                        onKeyDown={(event) => {
+                          if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+                            event.preventDefault()
+                            planAgentAction()
+                          }
+                        }}
+                        placeholder="例如：检查告警、查看磁盘、执行 uptime、打开终端、创建装机任务、配置 PXE"
+                        rows={5}
+                      />
+                    </label>
+                    <label className="toggle">
+                      <input type="checkbox" checked={allowAgentTools} onChange={(event) => setAllowAgentTools(event.target.checked)} />
+                      <span>{allowAgentTools ? '允许调用 controller 工具' : '仅对话，不调用工具'}</span>
+                    </label>
+                    <div className="hero__actions">
+                      <button className="button button--primary" onClick={planAgentAction} disabled={agentBusy}>
+                        {agentBusy ? '模型处理中...' : '发送给 LLM Agent'}
+                      </button>
+                      <button className="button" onClick={() => setChatInput('执行 df -h')}>磁盘检查</button>
+                      <button className="button" onClick={() => setChatInput('打开终端')}>终端接管</button>
+                      <button className="button" onClick={() => setChatInput('创建装机任务')}>装机编排</button>
+                    </div>
+                  </div>
+                </div>
+              </Panel>
+
+              <Panel
+                title={agentPlan?.title ?? 'Agent 执行计划'}
+                subtitle={agentPlan ? `意图：${agentPlan.intent}` : '等待输入目标'}
+              >
+                {agentPlan ? (
+                  <div className="control-stack">
+                    <div className="agent-summary">{agentPlan.summary}</div>
+                    {agentPlan.steps.length > 0 ? (
+                      <div className="agent-plan">
+                        {agentPlan.steps.map((step, index) => (
+                          <div className="agent-step" key={`${agentPlan.intent}-${index}`}>
+                            <strong>{String(index + 1).padStart(2, '0')}</strong>
+                            <span>{step}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                    {agentToolResults.length > 0 ? (
+                      <div className="terminal-output">
+                        <div className="terminal-output__title">工具调用结果</div>
+                        <pre>{JSON.stringify(agentToolResults, null, 2)}</pre>
+                      </div>
+                    ) : null}
+                    <div className="banner banner--warning">{agentPlan.risk}</div>
+                  </div>
+                ) : (
+                  <div className="empty-state">输入目标后，LLM Agent 会按系统提示词决定是否调用 controller 工具。</div>
+                )}
+              </Panel>
+
+              <Panel title="已接入能力面">
+                <div className="capability-grid">
+                  {agentCapabilities.map((item) => (
+                    <article className="capability-card" key={item.id}>
+                      <span>{item.cli}</span>
+                      <strong>{item.label}</strong>
+                      <p>{item.description}</p>
+                    </article>
+                  ))}
+                </div>
+              </Panel>
+            </>
+          )}
+
           {(activeSection === '总览' || activeSection === '节点') && (
             <Panel title="节点总览">
               <div className="table-wrap">
@@ -1057,6 +1268,22 @@ export default function App() {
                     <label className="field">
                       <span>Agent 上报周期(秒)</span>
                       <input className="text-input" value={runtimeDraft.agentReportIntervalSeconds} onChange={(event) => updateRuntimeDraft('agentReportIntervalSeconds', event.target.value)} />
+                    </label>
+                    <label className="field field--full">
+                      <span>大模型 API Base URL</span>
+                      <input className="text-input" value={runtimeDraft.llmBaseUrl} onChange={(event) => updateRuntimeDraft('llmBaseUrl', event.target.value)} placeholder="OpenAI-compatible，例如 https://api.openai.com/v1" />
+                    </label>
+                    <label className="field">
+                      <span>大模型 Model</span>
+                      <input className="text-input" value={runtimeDraft.llmModel} onChange={(event) => updateRuntimeDraft('llmModel', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>Temperature</span>
+                      <input className="text-input" value={runtimeDraft.llmTemperature} onChange={(event) => updateRuntimeDraft('llmTemperature', event.target.value)} />
+                    </label>
+                    <label className="field field--full">
+                      <span>大模型 API Key{runtimeDraft.llmApiKeyConfigured ? '（已配置，留空则不修改）' : ''}</span>
+                      <input className="text-input" type="password" value={runtimeDraft.llmApiKey} onChange={(event) => updateRuntimeDraft('llmApiKey', event.target.value)} placeholder="sk-...，仅保存到 WebAPI 本地 SQLite" />
                     </label>
                     <label className="field">
                       <span>管理员用户名</span>

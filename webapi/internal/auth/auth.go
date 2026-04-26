@@ -23,6 +23,29 @@ func New(databasePath, user, password string) (*Manager, error) {
 	return &Manager{store: store}, nil
 }
 
+func (m *Manager) EnsureAISettings(settings AISettings) error {
+	if m == nil {
+		return nil
+	}
+	current, ok := m.store.LoadAISettings()
+	if ok {
+		if current.LLMBaseURL == "" {
+			current.LLMBaseURL = settings.LLMBaseURL
+		}
+		if current.LLMModel == "" {
+			current.LLMModel = settings.LLMModel
+		}
+		if current.LLMTemperature == 0 {
+			current.LLMTemperature = settings.LLMTemperature
+		}
+		if current.LLMAPIKey == "" {
+			current.LLMAPIKey = settings.LLMAPIKey
+		}
+		return m.store.SaveAISettings(current)
+	}
+	return m.store.SaveAISettings(settings)
+}
+
 func (m *Manager) Login(user, password string) (string, bool) {
 	storedHash, ok := m.store.GetPasswordHash(user)
 	if !ok || hashValue(password) != storedHash {
@@ -76,6 +99,36 @@ func (m *Manager) UpdateAdminCredentials(user, password string) error {
 		return nil
 	}
 	return m.store.ResetAdmin(user, hashValue(password))
+}
+
+func (m *Manager) AISettings() AISettings {
+	if m == nil {
+		return AISettings{}
+	}
+	settings, _ := m.store.LoadAISettings()
+	return settings
+}
+
+func (m *Manager) UpdateAISettings(settings AISettings, replaceKey bool) error {
+	if m == nil {
+		return nil
+	}
+	current, _ := m.store.LoadAISettings()
+	next := settings
+	if next.LLMBaseURL == "" {
+		next.LLMBaseURL = current.LLMBaseURL
+	}
+	if next.LLMModel == "" {
+		next.LLMModel = current.LLMModel
+	}
+	if next.LLMTemperature == 0 {
+		next.LLMTemperature = current.LLMTemperature
+	}
+	if !replaceKey {
+		next.LLMAPIKey = current.LLMAPIKey
+	}
+	next.UpdatedAt = time.Now().UTC()
+	return m.store.SaveAISettings(next)
 }
 
 func hashValue(value string) string {

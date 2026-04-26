@@ -2,6 +2,7 @@ package auth
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -10,6 +11,14 @@ import (
 
 type Store struct {
 	db *sql.DB
+}
+
+type AISettings struct {
+	LLMBaseURL     string    `json:"llmBaseUrl"`
+	LLMAPIKey      string    `json:"llmApiKey"`
+	LLMModel       string    `json:"llmModel"`
+	LLMTemperature float64   `json:"llmTemperature"`
+	UpdatedAt      time.Time `json:"updatedAt"`
 }
 
 func NewStore(path string) (*Store, error) {
@@ -45,6 +54,11 @@ func (s *Store) migrate() error {
 			expires_at TEXT NOT NULL,
 			created_at TEXT NOT NULL
 		)`,
+		`CREATE TABLE IF NOT EXISTS configs (
+			name TEXT PRIMARY KEY,
+			updated_at TEXT NOT NULL,
+			payload_json TEXT NOT NULL
+		)`,
 	}
 	for _, statement := range statements {
 		if _, err := s.db.Exec(statement); err != nil {
@@ -52,6 +66,40 @@ func (s *Store) migrate() error {
 		}
 	}
 	return nil
+}
+
+func (s *Store) SaveAISettings(settings AISettings) error {
+	if settings.UpdatedAt.IsZero() {
+		settings.UpdatedAt = time.Now().UTC()
+	}
+	payload, err := json.Marshal(settings)
+	if err != nil {
+		return err
+	}
+	_, err = s.db.Exec(
+		`INSERT INTO configs (name, updated_at, payload_json)
+		 VALUES (?, ?, ?)
+		 ON CONFLICT(name) DO UPDATE SET
+		   updated_at = excluded.updated_at,
+		   payload_json = excluded.payload_json`,
+		"ai_settings",
+		settings.UpdatedAt.UTC().Format(time.RFC3339Nano),
+		string(payload),
+	)
+	return err
+}
+
+func (s *Store) LoadAISettings() (AISettings, bool) {
+	var payload string
+	err := s.db.QueryRow(`SELECT payload_json FROM configs WHERE name = ?`, "ai_settings").Scan(&payload)
+	if err != nil {
+		return AISettings{}, false
+	}
+	var settings AISettings
+	if json.Unmarshal([]byte(payload), &settings) != nil {
+		return AISettings{}, false
+	}
+	return settings, true
 }
 
 func (s *Store) EnsureAdmin(user, passwordHash string) error {

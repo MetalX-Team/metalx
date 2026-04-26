@@ -139,9 +139,48 @@ The dashboard will auto-login using the default credentials unless you override:
 - Controller persists install profiles and install jobs, renders iPXE scripts, Ubuntu autoinstall, Debian preseed, and Kickstart files, and serves a post-install agent bootstrap script.
 - WebAPI provides login and authenticated proxy endpoints to the controller.
 - Dashboard renders a live operational command center backed by WebAPI data only.
+- Dashboard includes `AIChat`, a controlled agent workspace that converts natural-language operator goals into explicit plans backed by existing MetalX capabilities.
 - Dashboard system settings allow editing `dnsmasq` parameters for PXE boot, including DHCP range, TFTP root, boot file, kernel/initrd, and boot arguments.
 - Dashboard now includes `装机模板` and `装机任务` for provisioning Ubuntu, Debian, Fedora, CentOS Stream, and RHEL hosts.
 - Dashboard login is no longer hardcoded. Runtime defaults such as refresh interval, terminal shell, provisioning URLs, agent listen addresses, agent report interval, and admin credentials can be updated from `系统设置`.
+- System settings include OpenAI-compatible LLM configuration for `AIChat`: API Base URL, API Key, model, and temperature.
+
+## AIChat Agent Workflow
+
+`AIChat` is a real LLM-backed agent control layer. The LLM API must implement the OpenAI Chat Completions format at:
+
+```text
+<LLM Base URL>/chat/completions
+Authorization: Bearer <API Key>
+```
+
+The endpoint can be configured in two ways:
+
+- Environment variables for `mxapi`: `MX_LLM_BASE_URL`, `MX_LLM_API_KEY`, `MX_LLM_MODEL`
+- Dashboard `系统设置`: `大模型 API Base URL`, `大模型 API Key`, `大模型 Model`, `Temperature`
+
+The API Key is stored in the WebAPI local SQLite database and is never sent to the browser after saving.
+
+1. Open the dashboard and go to `AIChat`.
+2. Describe the goal, for example `检查集群健康状态`, `查看磁盘`, `执行 uptime`, `创建装机任务`, or `配置 PXE`.
+3. The dashboard calls `POST /api/aichat`; WebAPI forwards the conversation to the configured LLM and exposes controller tools to the model.
+4. The agent maps user intent to the MetalX capability surface:
+   - `mxctl`: controller state, PXE/dnsmasq, install profiles, install jobs, and provisioning artifacts
+   - `mxagent`: node command execution and streaming terminal sessions
+   - `mxapi`: authenticated dashboard REST/WebSocket gateway
+5. When `允许调用 controller 工具` is enabled, WebAPI executes model tool calls against controller gRPC. Write operations are recorded through normal controller task/config/audit flows with actor `aichat-agent`.
+
+Available LLM tools cover the controller surface:
+
+- `get_summary`, `list_nodes`, `get_node`
+- `list_tasks`, `list_audits`, `list_alerts`, `get_system`
+- `get_runtime_settings`, `update_runtime_settings`
+- `get_dnsmasq_settings`, `update_dnsmasq_settings`
+- `list_install_profiles`, `upsert_install_profile`
+- `list_install_jobs`, `create_install_job`, `get_install_job`
+- `run_task`
+
+Because the configured LLM receives conversation context and tool results, only point `MX_LLM_BASE_URL` at a model endpoint you trust with cluster operational metadata.
 
 ## PXE / dnsmasq Workflow
 

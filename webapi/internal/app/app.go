@@ -32,6 +32,16 @@ func New(cfg config.Config) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+	if err := authManager.EnsureAISettings(auth.AISettings{
+		LLMBaseURL:     cfg.LLMBaseURL,
+		LLMAPIKey:      cfg.LLMAPIKey,
+		LLMModel:       cfg.LLMModel,
+		LLMTemperature: 0.2,
+		UpdatedAt:      time.Now().UTC(),
+	}); err != nil {
+		_ = authManager.Close()
+		return nil, err
+	}
 	conn, err := grpc.Dial(cfg.ControllerAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		_ = authManager.Close()
@@ -70,6 +80,7 @@ func (a *App) Run() error {
 	protected.GET("/system", a.handleSystem)
 	protected.GET("/settings/runtime", a.handleRuntimeSettings)
 	protected.PUT("/settings/runtime", a.handleUpdateRuntimeSettings)
+	protected.POST("/aichat", a.handleAIChat)
 	protected.GET("/system/dnsmasq", a.handleDnsmasqSettings)
 	protected.PUT("/system/dnsmasq", a.handleUpdateDnsmasqSettings)
 	protected.GET("/install/profiles", a.handleInstallProfiles)
@@ -183,27 +194,36 @@ func (a *App) handleRuntimeSettings(c *gin.Context) {
 		return
 	}
 	body["adminUser"] = a.auth.PrimaryUser()
+	ai := a.auth.AISettings()
+	body["llmBaseUrl"] = ai.LLMBaseURL
+	body["llmModel"] = ai.LLMModel
+	body["llmTemperature"] = ai.LLMTemperature
+	body["llmApiKeyConfigured"] = ai.LLMAPIKey != ""
 	c.JSON(http.StatusOK, body)
 }
 
 func (a *App) handleUpdateRuntimeSettings(c *gin.Context) {
 	var payload struct {
-		AllowShell                 bool   `json:"allowShell"`
-		DiscoveryPort              int32  `json:"discoveryPort"`
-		DNSMasqStateDir            string `json:"dnsmasqStateDir"`
-		ProvisioningBaseURL        string `json:"provisioningBaseUrl"`
-		PublicGRPCAddress          string `json:"publicGrpcAddress"`
-		AgentBinaryPath            string `json:"agentBinaryPath"`
-		DefaultNodeAddr            string `json:"defaultNodeAddr"`
-		DashboardRefreshIntervalMS int32  `json:"dashboardRefreshIntervalMs"`
-		DashboardDefaultCommand    string `json:"dashboardDefaultCommand"`
-		TerminalShell              string `json:"terminalShell"`
-		AgentListenAddress         string `json:"agentListenAddress"`
-		AgentGRPCListenAddress     string `json:"agentGrpcListenAddress"`
-		AgentReportIntervalSeconds int32  `json:"agentReportIntervalSeconds"`
-		AdminUser                  string `json:"adminUser"`
-		AdminPassword              string `json:"adminPassword"`
-		Actor                      string `json:"actor"`
+		AllowShell                 bool    `json:"allowShell"`
+		DiscoveryPort              int32   `json:"discoveryPort"`
+		DNSMasqStateDir            string  `json:"dnsmasqStateDir"`
+		ProvisioningBaseURL        string  `json:"provisioningBaseUrl"`
+		PublicGRPCAddress          string  `json:"publicGrpcAddress"`
+		AgentBinaryPath            string  `json:"agentBinaryPath"`
+		DefaultNodeAddr            string  `json:"defaultNodeAddr"`
+		DashboardRefreshIntervalMS int32   `json:"dashboardRefreshIntervalMs"`
+		DashboardDefaultCommand    string  `json:"dashboardDefaultCommand"`
+		TerminalShell              string  `json:"terminalShell"`
+		AgentListenAddress         string  `json:"agentListenAddress"`
+		AgentGRPCListenAddress     string  `json:"agentGrpcListenAddress"`
+		AgentReportIntervalSeconds int32   `json:"agentReportIntervalSeconds"`
+		AdminUser                  string  `json:"adminUser"`
+		AdminPassword              string  `json:"adminPassword"`
+		LLMBaseURL                 string  `json:"llmBaseUrl"`
+		LLMAPIKey                  string  `json:"llmApiKey"`
+		LLMModel                   string  `json:"llmModel"`
+		LLMTemperature             float64 `json:"llmTemperature"`
+		Actor                      string  `json:"actor"`
 	}
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -237,6 +257,17 @@ func (a *App) handleUpdateRuntimeSettings(c *gin.Context) {
 			return
 		}
 	}
+	if payload.LLMBaseURL != "" || payload.LLMModel != "" || payload.LLMAPIKey != "" {
+		if err := a.auth.UpdateAISettings(auth.AISettings{
+			LLMBaseURL:     payload.LLMBaseURL,
+			LLMAPIKey:      payload.LLMAPIKey,
+			LLMModel:       payload.LLMModel,
+			LLMTemperature: payload.LLMTemperature,
+		}, payload.LLMAPIKey != ""); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
 	data, err := protojson.MarshalOptions{UseProtoNames: false, EmitUnpopulated: true}.Marshal(resp)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -248,6 +279,11 @@ func (a *App) handleUpdateRuntimeSettings(c *gin.Context) {
 		return
 	}
 	body["adminUser"] = a.auth.PrimaryUser()
+	ai := a.auth.AISettings()
+	body["llmBaseUrl"] = ai.LLMBaseURL
+	body["llmModel"] = ai.LLMModel
+	body["llmTemperature"] = ai.LLMTemperature
+	body["llmApiKeyConfigured"] = ai.LLMAPIKey != ""
 	c.JSON(http.StatusOK, body)
 }
 
