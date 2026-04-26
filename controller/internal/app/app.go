@@ -37,6 +37,14 @@ func New(cfg config.Config) (*App, error) {
 		cfg:   cfg,
 		store: persistentStore,
 	}
+	if err := app.ensureAppSettings(); err != nil {
+		_ = persistentStore.Close()
+		return nil, err
+	}
+	if err := app.ensureInstallProfiles(); err != nil {
+		_ = persistentStore.Close()
+		return nil, err
+	}
 	settings := app.getDnsmasqSettings()
 	if err := app.persistDnsmasqSettings(settings); err != nil {
 		_ = persistentStore.Close()
@@ -53,6 +61,23 @@ func (a *App) Run(ctx context.Context) error {
 
 	httpMux := http.NewServeMux()
 	httpMux.HandleFunc("/healthz", a.handleHealth)
+	httpMux.HandleFunc("/boot/", a.handleBoot)
+	httpMux.HandleFunc("/provisioning/jobs/", func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.Contains(r.URL.Path, "/seed/"):
+			a.handleProvisioningSeed(w, r)
+		case strings.Contains(r.URL.Path, "/preseed/"), strings.Contains(r.URL.Path, "/kickstart/"):
+			a.handleProvisioningConfig(w, r)
+		case strings.Contains(r.URL.Path, "/agent-install/"):
+			a.handleAgentInstallScript(w, r)
+		case strings.Contains(r.URL.Path, "/artifacts/"):
+			a.handleProvisioningArtifact(w, r)
+		case strings.HasSuffix(r.URL.Path, "/events"):
+			a.handleInstallEvents(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
 	httpSrv := &http.Server{
 		Addr:    a.cfg.ListenAddress,
 		Handler: httpMux,
@@ -103,7 +128,7 @@ func (a *App) ReportSnapshot(_ context.Context, payload *metalxpb.Snapshot) (*me
 		NodeSummary: store.NodeSummary{
 			ID:           payload.GetNodeId(),
 			Name:         payload.GetHostname(),
-			Address:      fallback(payload.GetGrpcAddress(), a.cfg.DefaultNodeAddr),
+			Address:      fallback(payload.GetGrpcAddress(), a.getAppSettings().DefaultNodeAddr),
 			OS:           payload.GetOs(),
 			Kernel:       payload.GetKernel(),
 			Online:       true,
@@ -179,7 +204,7 @@ func (a *App) GetNode(_ context.Context, id *metalxpb.NodeID) (*metalxpb.NodeDet
 }
 
 func (a *App) RunTask(ctx context.Context, payload *metalxpb.RunTaskRequest) (*metalxpb.Task, error) {
-	if !a.cfg.AllowedShell {
+	if !a.getAppSettings().AllowShell {
 		return nil, grpcForbidden("shell execution disabled")
 	}
 	if payload.GetCommand() == "" || len(payload.GetTargets()) == 0 {
@@ -256,9 +281,9 @@ func (a *App) ListAlerts(context.Context, *metalxpb.Empty) (*metalxpb.ListAlerts
 func (a *App) GetSystemInfo(context.Context, *metalxpb.Empty) (*metalxpb.SystemInfo, error) {
 	return &metalxpb.SystemInfo{
 		ControllerAddress: a.cfg.GRPCListenAddress,
-		DiscoveryPort:     int32(a.cfg.DiscoveryPort),
+		DiscoveryPort:     int32(a.getAppSettings().DiscoveryPort),
 		DatabasePath:      a.cfg.DatabasePath,
-		ShellEnabled:      a.cfg.AllowedShell,
+		ShellEnabled:      a.getAppSettings().AllowShell,
 		Store:             "sqlite",
 		Timestamp:         time.Now().UTC().Format(time.RFC3339Nano),
 	}, nil

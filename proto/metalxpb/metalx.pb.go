@@ -2085,6 +2085,898 @@ func (x *UpdateDnsmasqSettingsRequest) GetActor() string {
 	return ""
 }
 
+type InstallProfile struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name                  string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	OsFamily              string                 `protobuf:"bytes,3,opt,name=os_family,json=osFamily,proto3" json:"os_family,omitempty"`
+	OsVersion             string                 `protobuf:"bytes,4,opt,name=os_version,json=osVersion,proto3" json:"os_version,omitempty"`
+	Architecture          string                 `protobuf:"bytes,5,opt,name=architecture,proto3" json:"architecture,omitempty"`
+	Firmware              string                 `protobuf:"bytes,6,opt,name=firmware,proto3" json:"firmware,omitempty"`
+	InstallSource         string                 `protobuf:"bytes,7,opt,name=install_source,json=installSource,proto3" json:"install_source,omitempty"`
+	BootKernelPath        string                 `protobuf:"bytes,8,opt,name=boot_kernel_path,json=bootKernelPath,proto3" json:"boot_kernel_path,omitempty"`
+	BootInitrdPath        string                 `protobuf:"bytes,9,opt,name=boot_initrd_path,json=bootInitrdPath,proto3" json:"boot_initrd_path,omitempty"`
+	HostnamePattern       string                 `protobuf:"bytes,10,opt,name=hostname_pattern,json=hostnamePattern,proto3" json:"hostname_pattern,omitempty"`
+	Timezone              string                 `protobuf:"bytes,11,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	Locale                string                 `protobuf:"bytes,12,opt,name=locale,proto3" json:"locale,omitempty"`
+	KeyboardLayout        string                 `protobuf:"bytes,13,opt,name=keyboard_layout,json=keyboardLayout,proto3" json:"keyboard_layout,omitempty"`
+	AdminUsername         string                 `protobuf:"bytes,14,opt,name=admin_username,json=adminUsername,proto3" json:"admin_username,omitempty"`
+	AdminPasswordHash     string                 `protobuf:"bytes,15,opt,name=admin_password_hash,json=adminPasswordHash,proto3" json:"admin_password_hash,omitempty"`
+	SshAuthorizedKeys     []string               `protobuf:"bytes,16,rep,name=ssh_authorized_keys,json=sshAuthorizedKeys,proto3" json:"ssh_authorized_keys,omitempty"`
+	Packages              []string               `protobuf:"bytes,17,rep,name=packages,proto3" json:"packages,omitempty"`
+	PackageMirror         string                 `protobuf:"bytes,18,opt,name=package_mirror,json=packageMirror,proto3" json:"package_mirror,omitempty"`
+	DiskLayout            string                 `protobuf:"bytes,19,opt,name=disk_layout,json=diskLayout,proto3" json:"disk_layout,omitempty"`
+	NetworkMode           string                 `protobuf:"bytes,20,opt,name=network_mode,json=networkMode,proto3" json:"network_mode,omitempty"`
+	AgentBinaryUrl        string                 `protobuf:"bytes,21,opt,name=agent_binary_url,json=agentBinaryUrl,proto3" json:"agent_binary_url,omitempty"`
+	AgentServiceName      string                 `protobuf:"bytes,22,opt,name=agent_service_name,json=agentServiceName,proto3" json:"agent_service_name,omitempty"`
+	ControllerGrpcAddress string                 `protobuf:"bytes,23,opt,name=controller_grpc_address,json=controllerGrpcAddress,proto3" json:"controller_grpc_address,omitempty"`
+	ExtraKernelArgs       string                 `protobuf:"bytes,24,opt,name=extra_kernel_args,json=extraKernelArgs,proto3" json:"extra_kernel_args,omitempty"`
+	PostInstallScript     string                 `protobuf:"bytes,25,opt,name=post_install_script,json=postInstallScript,proto3" json:"post_install_script,omitempty"`
+	Enabled               bool                   `protobuf:"varint,26,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	CreatedAt             string                 `protobuf:"bytes,27,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt             string                 `protobuf:"bytes,28,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *InstallProfile) Reset() {
+	*x = InstallProfile{}
+	mi := &file_metalx_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InstallProfile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InstallProfile) ProtoMessage() {}
+
+func (x *InstallProfile) ProtoReflect() protoreflect.Message {
+	mi := &file_metalx_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InstallProfile.ProtoReflect.Descriptor instead.
+func (*InstallProfile) Descriptor() ([]byte, []int) {
+	return file_metalx_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *InstallProfile) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetOsFamily() string {
+	if x != nil {
+		return x.OsFamily
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetOsVersion() string {
+	if x != nil {
+		return x.OsVersion
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetArchitecture() string {
+	if x != nil {
+		return x.Architecture
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetFirmware() string {
+	if x != nil {
+		return x.Firmware
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetInstallSource() string {
+	if x != nil {
+		return x.InstallSource
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetBootKernelPath() string {
+	if x != nil {
+		return x.BootKernelPath
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetBootInitrdPath() string {
+	if x != nil {
+		return x.BootInitrdPath
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetHostnamePattern() string {
+	if x != nil {
+		return x.HostnamePattern
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetTimezone() string {
+	if x != nil {
+		return x.Timezone
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetLocale() string {
+	if x != nil {
+		return x.Locale
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetKeyboardLayout() string {
+	if x != nil {
+		return x.KeyboardLayout
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetAdminUsername() string {
+	if x != nil {
+		return x.AdminUsername
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetAdminPasswordHash() string {
+	if x != nil {
+		return x.AdminPasswordHash
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetSshAuthorizedKeys() []string {
+	if x != nil {
+		return x.SshAuthorizedKeys
+	}
+	return nil
+}
+
+func (x *InstallProfile) GetPackages() []string {
+	if x != nil {
+		return x.Packages
+	}
+	return nil
+}
+
+func (x *InstallProfile) GetPackageMirror() string {
+	if x != nil {
+		return x.PackageMirror
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetDiskLayout() string {
+	if x != nil {
+		return x.DiskLayout
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetNetworkMode() string {
+	if x != nil {
+		return x.NetworkMode
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetAgentBinaryUrl() string {
+	if x != nil {
+		return x.AgentBinaryUrl
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetAgentServiceName() string {
+	if x != nil {
+		return x.AgentServiceName
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetControllerGrpcAddress() string {
+	if x != nil {
+		return x.ControllerGrpcAddress
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetExtraKernelArgs() string {
+	if x != nil {
+		return x.ExtraKernelArgs
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetPostInstallScript() string {
+	if x != nil {
+		return x.PostInstallScript
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *InstallProfile) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *InstallProfile) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+type InstallJob struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ProfileId      string                 `protobuf:"bytes,2,opt,name=profile_id,json=profileId,proto3" json:"profile_id,omitempty"`
+	ProfileName    string                 `protobuf:"bytes,3,opt,name=profile_name,json=profileName,proto3" json:"profile_name,omitempty"`
+	OsFamily       string                 `protobuf:"bytes,4,opt,name=os_family,json=osFamily,proto3" json:"os_family,omitempty"`
+	Status         string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	MacAddress     string                 `protobuf:"bytes,6,opt,name=mac_address,json=macAddress,proto3" json:"mac_address,omitempty"`
+	Hostname       string                 `protobuf:"bytes,7,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	NodeId         string                 `protobuf:"bytes,8,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	Token          string                 `protobuf:"bytes,9,opt,name=token,proto3" json:"token,omitempty"`
+	BootUrl        string                 `protobuf:"bytes,10,opt,name=boot_url,json=bootUrl,proto3" json:"boot_url,omitempty"`
+	ConfigUrl      string                 `protobuf:"bytes,11,opt,name=config_url,json=configUrl,proto3" json:"config_url,omitempty"`
+	AgentScriptUrl string                 `protobuf:"bytes,12,opt,name=agent_script_url,json=agentScriptUrl,proto3" json:"agent_script_url,omitempty"`
+	LastEvent      string                 `protobuf:"bytes,13,opt,name=last_event,json=lastEvent,proto3" json:"last_event,omitempty"`
+	CreatedAt      string                 `protobuf:"bytes,14,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt      string                 `protobuf:"bytes,15,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	BootPreview    string                 `protobuf:"bytes,16,opt,name=boot_preview,json=bootPreview,proto3" json:"boot_preview,omitempty"`
+	ConfigPreview  string                 `protobuf:"bytes,17,opt,name=config_preview,json=configPreview,proto3" json:"config_preview,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *InstallJob) Reset() {
+	*x = InstallJob{}
+	mi := &file_metalx_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InstallJob) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InstallJob) ProtoMessage() {}
+
+func (x *InstallJob) ProtoReflect() protoreflect.Message {
+	mi := &file_metalx_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InstallJob.ProtoReflect.Descriptor instead.
+func (*InstallJob) Descriptor() ([]byte, []int) {
+	return file_metalx_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *InstallJob) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *InstallJob) GetProfileId() string {
+	if x != nil {
+		return x.ProfileId
+	}
+	return ""
+}
+
+func (x *InstallJob) GetProfileName() string {
+	if x != nil {
+		return x.ProfileName
+	}
+	return ""
+}
+
+func (x *InstallJob) GetOsFamily() string {
+	if x != nil {
+		return x.OsFamily
+	}
+	return ""
+}
+
+func (x *InstallJob) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *InstallJob) GetMacAddress() string {
+	if x != nil {
+		return x.MacAddress
+	}
+	return ""
+}
+
+func (x *InstallJob) GetHostname() string {
+	if x != nil {
+		return x.Hostname
+	}
+	return ""
+}
+
+func (x *InstallJob) GetNodeId() string {
+	if x != nil {
+		return x.NodeId
+	}
+	return ""
+}
+
+func (x *InstallJob) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+func (x *InstallJob) GetBootUrl() string {
+	if x != nil {
+		return x.BootUrl
+	}
+	return ""
+}
+
+func (x *InstallJob) GetConfigUrl() string {
+	if x != nil {
+		return x.ConfigUrl
+	}
+	return ""
+}
+
+func (x *InstallJob) GetAgentScriptUrl() string {
+	if x != nil {
+		return x.AgentScriptUrl
+	}
+	return ""
+}
+
+func (x *InstallJob) GetLastEvent() string {
+	if x != nil {
+		return x.LastEvent
+	}
+	return ""
+}
+
+func (x *InstallJob) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *InstallJob) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *InstallJob) GetBootPreview() string {
+	if x != nil {
+		return x.BootPreview
+	}
+	return ""
+}
+
+func (x *InstallJob) GetConfigPreview() string {
+	if x != nil {
+		return x.ConfigPreview
+	}
+	return ""
+}
+
+type ListInstallProfilesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Items         []*InstallProfile      `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListInstallProfilesResponse) Reset() {
+	*x = ListInstallProfilesResponse{}
+	mi := &file_metalx_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListInstallProfilesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListInstallProfilesResponse) ProtoMessage() {}
+
+func (x *ListInstallProfilesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_metalx_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListInstallProfilesResponse.ProtoReflect.Descriptor instead.
+func (*ListInstallProfilesResponse) Descriptor() ([]byte, []int) {
+	return file_metalx_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *ListInstallProfilesResponse) GetItems() []*InstallProfile {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+type ListInstallJobsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Items         []*InstallJob          `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListInstallJobsResponse) Reset() {
+	*x = ListInstallJobsResponse{}
+	mi := &file_metalx_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListInstallJobsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListInstallJobsResponse) ProtoMessage() {}
+
+func (x *ListInstallJobsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_metalx_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListInstallJobsResponse.ProtoReflect.Descriptor instead.
+func (*ListInstallJobsResponse) Descriptor() ([]byte, []int) {
+	return file_metalx_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *ListInstallJobsResponse) GetItems() []*InstallJob {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+type UpsertInstallProfileRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Profile       *InstallProfile        `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`
+	Actor         string                 `protobuf:"bytes,2,opt,name=actor,proto3" json:"actor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpsertInstallProfileRequest) Reset() {
+	*x = UpsertInstallProfileRequest{}
+	mi := &file_metalx_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpsertInstallProfileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpsertInstallProfileRequest) ProtoMessage() {}
+
+func (x *UpsertInstallProfileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_metalx_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpsertInstallProfileRequest.ProtoReflect.Descriptor instead.
+func (*UpsertInstallProfileRequest) Descriptor() ([]byte, []int) {
+	return file_metalx_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *UpsertInstallProfileRequest) GetProfile() *InstallProfile {
+	if x != nil {
+		return x.Profile
+	}
+	return nil
+}
+
+func (x *UpsertInstallProfileRequest) GetActor() string {
+	if x != nil {
+		return x.Actor
+	}
+	return ""
+}
+
+type CreateInstallJobRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProfileId     string                 `protobuf:"bytes,1,opt,name=profile_id,json=profileId,proto3" json:"profile_id,omitempty"`
+	MacAddress    string                 `protobuf:"bytes,2,opt,name=mac_address,json=macAddress,proto3" json:"mac_address,omitempty"`
+	Hostname      string                 `protobuf:"bytes,3,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	NodeId        string                 `protobuf:"bytes,4,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	Actor         string                 `protobuf:"bytes,5,opt,name=actor,proto3" json:"actor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateInstallJobRequest) Reset() {
+	*x = CreateInstallJobRequest{}
+	mi := &file_metalx_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateInstallJobRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateInstallJobRequest) ProtoMessage() {}
+
+func (x *CreateInstallJobRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_metalx_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateInstallJobRequest.ProtoReflect.Descriptor instead.
+func (*CreateInstallJobRequest) Descriptor() ([]byte, []int) {
+	return file_metalx_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *CreateInstallJobRequest) GetProfileId() string {
+	if x != nil {
+		return x.ProfileId
+	}
+	return ""
+}
+
+func (x *CreateInstallJobRequest) GetMacAddress() string {
+	if x != nil {
+		return x.MacAddress
+	}
+	return ""
+}
+
+func (x *CreateInstallJobRequest) GetHostname() string {
+	if x != nil {
+		return x.Hostname
+	}
+	return ""
+}
+
+func (x *CreateInstallJobRequest) GetNodeId() string {
+	if x != nil {
+		return x.NodeId
+	}
+	return ""
+}
+
+func (x *CreateInstallJobRequest) GetActor() string {
+	if x != nil {
+		return x.Actor
+	}
+	return ""
+}
+
+type InstallJobID struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InstallJobID) Reset() {
+	*x = InstallJobID{}
+	mi := &file_metalx_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InstallJobID) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InstallJobID) ProtoMessage() {}
+
+func (x *InstallJobID) ProtoReflect() protoreflect.Message {
+	mi := &file_metalx_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InstallJobID.ProtoReflect.Descriptor instead.
+func (*InstallJobID) Descriptor() ([]byte, []int) {
+	return file_metalx_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *InstallJobID) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type AppSettings struct {
+	state                      protoimpl.MessageState `protogen:"open.v1"`
+	AllowShell                 bool                   `protobuf:"varint,1,opt,name=allow_shell,json=allowShell,proto3" json:"allow_shell,omitempty"`
+	DiscoveryPort              int32                  `protobuf:"varint,2,opt,name=discovery_port,json=discoveryPort,proto3" json:"discovery_port,omitempty"`
+	DnsmasqStateDir            string                 `protobuf:"bytes,3,opt,name=dnsmasq_state_dir,json=dnsmasqStateDir,proto3" json:"dnsmasq_state_dir,omitempty"`
+	ProvisioningBaseUrl        string                 `protobuf:"bytes,4,opt,name=provisioning_base_url,json=provisioningBaseUrl,proto3" json:"provisioning_base_url,omitempty"`
+	PublicGrpcAddress          string                 `protobuf:"bytes,5,opt,name=public_grpc_address,json=publicGrpcAddress,proto3" json:"public_grpc_address,omitempty"`
+	AgentBinaryPath            string                 `protobuf:"bytes,6,opt,name=agent_binary_path,json=agentBinaryPath,proto3" json:"agent_binary_path,omitempty"`
+	DefaultNodeAddr            string                 `protobuf:"bytes,7,opt,name=default_node_addr,json=defaultNodeAddr,proto3" json:"default_node_addr,omitempty"`
+	DashboardRefreshIntervalMs int32                  `protobuf:"varint,8,opt,name=dashboard_refresh_interval_ms,json=dashboardRefreshIntervalMs,proto3" json:"dashboard_refresh_interval_ms,omitempty"`
+	DashboardDefaultCommand    string                 `protobuf:"bytes,9,opt,name=dashboard_default_command,json=dashboardDefaultCommand,proto3" json:"dashboard_default_command,omitempty"`
+	TerminalShell              string                 `protobuf:"bytes,10,opt,name=terminal_shell,json=terminalShell,proto3" json:"terminal_shell,omitempty"`
+	AgentListenAddress         string                 `protobuf:"bytes,11,opt,name=agent_listen_address,json=agentListenAddress,proto3" json:"agent_listen_address,omitempty"`
+	AgentGrpcListenAddress     string                 `protobuf:"bytes,12,opt,name=agent_grpc_listen_address,json=agentGrpcListenAddress,proto3" json:"agent_grpc_listen_address,omitempty"`
+	AgentReportIntervalSeconds int32                  `protobuf:"varint,13,opt,name=agent_report_interval_seconds,json=agentReportIntervalSeconds,proto3" json:"agent_report_interval_seconds,omitempty"`
+	UpdatedAt                  string                 `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
+}
+
+func (x *AppSettings) Reset() {
+	*x = AppSettings{}
+	mi := &file_metalx_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AppSettings) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AppSettings) ProtoMessage() {}
+
+func (x *AppSettings) ProtoReflect() protoreflect.Message {
+	mi := &file_metalx_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AppSettings.ProtoReflect.Descriptor instead.
+func (*AppSettings) Descriptor() ([]byte, []int) {
+	return file_metalx_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *AppSettings) GetAllowShell() bool {
+	if x != nil {
+		return x.AllowShell
+	}
+	return false
+}
+
+func (x *AppSettings) GetDiscoveryPort() int32 {
+	if x != nil {
+		return x.DiscoveryPort
+	}
+	return 0
+}
+
+func (x *AppSettings) GetDnsmasqStateDir() string {
+	if x != nil {
+		return x.DnsmasqStateDir
+	}
+	return ""
+}
+
+func (x *AppSettings) GetProvisioningBaseUrl() string {
+	if x != nil {
+		return x.ProvisioningBaseUrl
+	}
+	return ""
+}
+
+func (x *AppSettings) GetPublicGrpcAddress() string {
+	if x != nil {
+		return x.PublicGrpcAddress
+	}
+	return ""
+}
+
+func (x *AppSettings) GetAgentBinaryPath() string {
+	if x != nil {
+		return x.AgentBinaryPath
+	}
+	return ""
+}
+
+func (x *AppSettings) GetDefaultNodeAddr() string {
+	if x != nil {
+		return x.DefaultNodeAddr
+	}
+	return ""
+}
+
+func (x *AppSettings) GetDashboardRefreshIntervalMs() int32 {
+	if x != nil {
+		return x.DashboardRefreshIntervalMs
+	}
+	return 0
+}
+
+func (x *AppSettings) GetDashboardDefaultCommand() string {
+	if x != nil {
+		return x.DashboardDefaultCommand
+	}
+	return ""
+}
+
+func (x *AppSettings) GetTerminalShell() string {
+	if x != nil {
+		return x.TerminalShell
+	}
+	return ""
+}
+
+func (x *AppSettings) GetAgentListenAddress() string {
+	if x != nil {
+		return x.AgentListenAddress
+	}
+	return ""
+}
+
+func (x *AppSettings) GetAgentGrpcListenAddress() string {
+	if x != nil {
+		return x.AgentGrpcListenAddress
+	}
+	return ""
+}
+
+func (x *AppSettings) GetAgentReportIntervalSeconds() int32 {
+	if x != nil {
+		return x.AgentReportIntervalSeconds
+	}
+	return 0
+}
+
+func (x *AppSettings) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+type UpdateAppSettingsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Settings      *AppSettings           `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
+	Actor         string                 `protobuf:"bytes,2,opt,name=actor,proto3" json:"actor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateAppSettingsRequest) Reset() {
+	*x = UpdateAppSettingsRequest{}
+	mi := &file_metalx_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateAppSettingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateAppSettingsRequest) ProtoMessage() {}
+
+func (x *UpdateAppSettingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_metalx_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateAppSettingsRequest.ProtoReflect.Descriptor instead.
+func (*UpdateAppSettingsRequest) Descriptor() ([]byte, []int) {
+	return file_metalx_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *UpdateAppSettingsRequest) GetSettings() *AppSettings {
+	if x != nil {
+		return x.Settings
+	}
+	return nil
+}
+
+func (x *UpdateAppSettingsRequest) GetActor() string {
+	if x != nil {
+		return x.Actor
+	}
+	return ""
+}
+
 type ListNodesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Items         []*NodeSummary         `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
@@ -2094,7 +2986,7 @@ type ListNodesResponse struct {
 
 func (x *ListNodesResponse) Reset() {
 	*x = ListNodesResponse{}
-	mi := &file_metalx_proto_msgTypes[22]
+	mi := &file_metalx_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2106,7 +2998,7 @@ func (x *ListNodesResponse) String() string {
 func (*ListNodesResponse) ProtoMessage() {}
 
 func (x *ListNodesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_metalx_proto_msgTypes[22]
+	mi := &file_metalx_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2119,7 +3011,7 @@ func (x *ListNodesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNodesResponse.ProtoReflect.Descriptor instead.
 func (*ListNodesResponse) Descriptor() ([]byte, []int) {
-	return file_metalx_proto_rawDescGZIP(), []int{22}
+	return file_metalx_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ListNodesResponse) GetItems() []*NodeSummary {
@@ -2138,7 +3030,7 @@ type ListTasksResponse struct {
 
 func (x *ListTasksResponse) Reset() {
 	*x = ListTasksResponse{}
-	mi := &file_metalx_proto_msgTypes[23]
+	mi := &file_metalx_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2150,7 +3042,7 @@ func (x *ListTasksResponse) String() string {
 func (*ListTasksResponse) ProtoMessage() {}
 
 func (x *ListTasksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_metalx_proto_msgTypes[23]
+	mi := &file_metalx_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2163,7 +3055,7 @@ func (x *ListTasksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTasksResponse.ProtoReflect.Descriptor instead.
 func (*ListTasksResponse) Descriptor() ([]byte, []int) {
-	return file_metalx_proto_rawDescGZIP(), []int{23}
+	return file_metalx_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *ListTasksResponse) GetItems() []*Task {
@@ -2182,7 +3074,7 @@ type ListAuditsResponse struct {
 
 func (x *ListAuditsResponse) Reset() {
 	*x = ListAuditsResponse{}
-	mi := &file_metalx_proto_msgTypes[24]
+	mi := &file_metalx_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2194,7 +3086,7 @@ func (x *ListAuditsResponse) String() string {
 func (*ListAuditsResponse) ProtoMessage() {}
 
 func (x *ListAuditsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_metalx_proto_msgTypes[24]
+	mi := &file_metalx_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2207,7 +3099,7 @@ func (x *ListAuditsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAuditsResponse.ProtoReflect.Descriptor instead.
 func (*ListAuditsResponse) Descriptor() ([]byte, []int) {
-	return file_metalx_proto_rawDescGZIP(), []int{24}
+	return file_metalx_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ListAuditsResponse) GetItems() []*AuditRecord {
@@ -2226,7 +3118,7 @@ type ListAlertsResponse struct {
 
 func (x *ListAlertsResponse) Reset() {
 	*x = ListAlertsResponse{}
-	mi := &file_metalx_proto_msgTypes[25]
+	mi := &file_metalx_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2238,7 +3130,7 @@ func (x *ListAlertsResponse) String() string {
 func (*ListAlertsResponse) ProtoMessage() {}
 
 func (x *ListAlertsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_metalx_proto_msgTypes[25]
+	mi := &file_metalx_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2251,7 +3143,7 @@ func (x *ListAlertsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAlertsResponse.ProtoReflect.Descriptor instead.
 func (*ListAlertsResponse) Descriptor() ([]byte, []int) {
-	return file_metalx_proto_rawDescGZIP(), []int{25}
+	return file_metalx_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ListAlertsResponse) GetItems() []*AlertRecord {
@@ -2272,7 +3164,7 @@ type RunTaskRequest struct {
 
 func (x *RunTaskRequest) Reset() {
 	*x = RunTaskRequest{}
-	mi := &file_metalx_proto_msgTypes[26]
+	mi := &file_metalx_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2284,7 +3176,7 @@ func (x *RunTaskRequest) String() string {
 func (*RunTaskRequest) ProtoMessage() {}
 
 func (x *RunTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_metalx_proto_msgTypes[26]
+	mi := &file_metalx_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2297,7 +3189,7 @@ func (x *RunTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunTaskRequest.ProtoReflect.Descriptor instead.
 func (*RunTaskRequest) Descriptor() ([]byte, []int) {
-	return file_metalx_proto_rawDescGZIP(), []int{26}
+	return file_metalx_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *RunTaskRequest) GetCommand() string {
@@ -2546,6 +3438,104 @@ const file_metalx_proto_rawDesc = "" +
 	"updated_at\x18\x15 \x01(\tR\tupdatedAt\"l\n" +
 	"\x1cUpdateDnsmasqSettingsRequest\x126\n" +
 	"\bsettings\x18\x01 \x01(\v2\x1a.metalx.v1.DnsmasqSettingsR\bsettings\x12\x14\n" +
+	"\x05actor\x18\x02 \x01(\tR\x05actor\"\x85\b\n" +
+	"\x0eInstallProfile\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1b\n" +
+	"\tos_family\x18\x03 \x01(\tR\bosFamily\x12\x1d\n" +
+	"\n" +
+	"os_version\x18\x04 \x01(\tR\tosVersion\x12\"\n" +
+	"\farchitecture\x18\x05 \x01(\tR\farchitecture\x12\x1a\n" +
+	"\bfirmware\x18\x06 \x01(\tR\bfirmware\x12%\n" +
+	"\x0einstall_source\x18\a \x01(\tR\rinstallSource\x12(\n" +
+	"\x10boot_kernel_path\x18\b \x01(\tR\x0ebootKernelPath\x12(\n" +
+	"\x10boot_initrd_path\x18\t \x01(\tR\x0ebootInitrdPath\x12)\n" +
+	"\x10hostname_pattern\x18\n" +
+	" \x01(\tR\x0fhostnamePattern\x12\x1a\n" +
+	"\btimezone\x18\v \x01(\tR\btimezone\x12\x16\n" +
+	"\x06locale\x18\f \x01(\tR\x06locale\x12'\n" +
+	"\x0fkeyboard_layout\x18\r \x01(\tR\x0ekeyboardLayout\x12%\n" +
+	"\x0eadmin_username\x18\x0e \x01(\tR\radminUsername\x12.\n" +
+	"\x13admin_password_hash\x18\x0f \x01(\tR\x11adminPasswordHash\x12.\n" +
+	"\x13ssh_authorized_keys\x18\x10 \x03(\tR\x11sshAuthorizedKeys\x12\x1a\n" +
+	"\bpackages\x18\x11 \x03(\tR\bpackages\x12%\n" +
+	"\x0epackage_mirror\x18\x12 \x01(\tR\rpackageMirror\x12\x1f\n" +
+	"\vdisk_layout\x18\x13 \x01(\tR\n" +
+	"diskLayout\x12!\n" +
+	"\fnetwork_mode\x18\x14 \x01(\tR\vnetworkMode\x12(\n" +
+	"\x10agent_binary_url\x18\x15 \x01(\tR\x0eagentBinaryUrl\x12,\n" +
+	"\x12agent_service_name\x18\x16 \x01(\tR\x10agentServiceName\x126\n" +
+	"\x17controller_grpc_address\x18\x17 \x01(\tR\x15controllerGrpcAddress\x12*\n" +
+	"\x11extra_kernel_args\x18\x18 \x01(\tR\x0fextraKernelArgs\x12.\n" +
+	"\x13post_install_script\x18\x19 \x01(\tR\x11postInstallScript\x12\x18\n" +
+	"\aenabled\x18\x1a \x01(\bR\aenabled\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x1b \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x1c \x01(\tR\tupdatedAt\"\x8a\x04\n" +
+	"\n" +
+	"InstallJob\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"profile_id\x18\x02 \x01(\tR\tprofileId\x12!\n" +
+	"\fprofile_name\x18\x03 \x01(\tR\vprofileName\x12\x1b\n" +
+	"\tos_family\x18\x04 \x01(\tR\bosFamily\x12\x16\n" +
+	"\x06status\x18\x05 \x01(\tR\x06status\x12\x1f\n" +
+	"\vmac_address\x18\x06 \x01(\tR\n" +
+	"macAddress\x12\x1a\n" +
+	"\bhostname\x18\a \x01(\tR\bhostname\x12\x17\n" +
+	"\anode_id\x18\b \x01(\tR\x06nodeId\x12\x14\n" +
+	"\x05token\x18\t \x01(\tR\x05token\x12\x19\n" +
+	"\bboot_url\x18\n" +
+	" \x01(\tR\abootUrl\x12\x1d\n" +
+	"\n" +
+	"config_url\x18\v \x01(\tR\tconfigUrl\x12(\n" +
+	"\x10agent_script_url\x18\f \x01(\tR\x0eagentScriptUrl\x12\x1d\n" +
+	"\n" +
+	"last_event\x18\r \x01(\tR\tlastEvent\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x0e \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x0f \x01(\tR\tupdatedAt\x12!\n" +
+	"\fboot_preview\x18\x10 \x01(\tR\vbootPreview\x12%\n" +
+	"\x0econfig_preview\x18\x11 \x01(\tR\rconfigPreview\"N\n" +
+	"\x1bListInstallProfilesResponse\x12/\n" +
+	"\x05items\x18\x01 \x03(\v2\x19.metalx.v1.InstallProfileR\x05items\"F\n" +
+	"\x17ListInstallJobsResponse\x12+\n" +
+	"\x05items\x18\x01 \x03(\v2\x15.metalx.v1.InstallJobR\x05items\"h\n" +
+	"\x1bUpsertInstallProfileRequest\x123\n" +
+	"\aprofile\x18\x01 \x01(\v2\x19.metalx.v1.InstallProfileR\aprofile\x12\x14\n" +
+	"\x05actor\x18\x02 \x01(\tR\x05actor\"\xa4\x01\n" +
+	"\x17CreateInstallJobRequest\x12\x1d\n" +
+	"\n" +
+	"profile_id\x18\x01 \x01(\tR\tprofileId\x12\x1f\n" +
+	"\vmac_address\x18\x02 \x01(\tR\n" +
+	"macAddress\x12\x1a\n" +
+	"\bhostname\x18\x03 \x01(\tR\bhostname\x12\x17\n" +
+	"\anode_id\x18\x04 \x01(\tR\x06nodeId\x12\x14\n" +
+	"\x05actor\x18\x05 \x01(\tR\x05actor\"\x1e\n" +
+	"\fInstallJobID\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\xb2\x05\n" +
+	"\vAppSettings\x12\x1f\n" +
+	"\vallow_shell\x18\x01 \x01(\bR\n" +
+	"allowShell\x12%\n" +
+	"\x0ediscovery_port\x18\x02 \x01(\x05R\rdiscoveryPort\x12*\n" +
+	"\x11dnsmasq_state_dir\x18\x03 \x01(\tR\x0fdnsmasqStateDir\x122\n" +
+	"\x15provisioning_base_url\x18\x04 \x01(\tR\x13provisioningBaseUrl\x12.\n" +
+	"\x13public_grpc_address\x18\x05 \x01(\tR\x11publicGrpcAddress\x12*\n" +
+	"\x11agent_binary_path\x18\x06 \x01(\tR\x0fagentBinaryPath\x12*\n" +
+	"\x11default_node_addr\x18\a \x01(\tR\x0fdefaultNodeAddr\x12A\n" +
+	"\x1ddashboard_refresh_interval_ms\x18\b \x01(\x05R\x1adashboardRefreshIntervalMs\x12:\n" +
+	"\x19dashboard_default_command\x18\t \x01(\tR\x17dashboardDefaultCommand\x12%\n" +
+	"\x0eterminal_shell\x18\n" +
+	" \x01(\tR\rterminalShell\x120\n" +
+	"\x14agent_listen_address\x18\v \x01(\tR\x12agentListenAddress\x129\n" +
+	"\x19agent_grpc_listen_address\x18\f \x01(\tR\x16agentGrpcListenAddress\x12A\n" +
+	"\x1dagent_report_interval_seconds\x18\r \x01(\x05R\x1aagentReportIntervalSeconds\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x0e \x01(\tR\tupdatedAt\"d\n" +
+	"\x18UpdateAppSettingsRequest\x122\n" +
+	"\bsettings\x18\x01 \x01(\v2\x16.metalx.v1.AppSettingsR\bsettings\x12\x14\n" +
 	"\x05actor\x18\x02 \x01(\tR\x05actor\"A\n" +
 	"\x11ListNodesResponse\x12,\n" +
 	"\x05items\x18\x01 \x03(\v2\x16.metalx.v1.NodeSummaryR\x05items\":\n" +
@@ -2562,7 +3552,8 @@ const file_metalx_proto_rawDesc = "" +
 	"\fAgentService\x124\n" +
 	"\vGetSnapshot\x12\x10.metalx.v1.Empty\x1a\x13.metalx.v1.Snapshot\x12E\n" +
 	"\x0eExecuteCommand\x12\x19.metalx.v1.CommandRequest\x1a\x18.metalx.v1.CommandResult\x12F\n" +
-	"\fOpenTerminal\x12\x18.metalx.v1.TerminalFrame\x1a\x18.metalx.v1.TerminalFrame(\x010\x012\x86\x06\n" +
+	"\fOpenTerminal\x12\x18.metalx.v1.TerminalFrame\x1a\x18.metalx.v1.TerminalFrame(\x010\x012\x99\n" +
+	"\n" +
 	"\x11ControllerService\x125\n" +
 	"\x0eReportSnapshot\x12\x13.metalx.v1.Snapshot\x1a\x0e.metalx.v1.Ack\x122\n" +
 	"\n" +
@@ -2577,7 +3568,14 @@ const file_metalx_proto_rawDesc = "" +
 	"ListAlerts\x12\x10.metalx.v1.Empty\x1a\x1d.metalx.v1.ListAlertsResponse\x128\n" +
 	"\rGetSystemInfo\x12\x10.metalx.v1.Empty\x1a\x15.metalx.v1.SystemInfo\x12B\n" +
 	"\x12GetDnsmasqSettings\x12\x10.metalx.v1.Empty\x1a\x1a.metalx.v1.DnsmasqSettings\x12\\\n" +
-	"\x15UpdateDnsmasqSettings\x12'.metalx.v1.UpdateDnsmasqSettingsRequest\x1a\x1a.metalx.v1.DnsmasqSettings\x12F\n" +
+	"\x15UpdateDnsmasqSettings\x12'.metalx.v1.UpdateDnsmasqSettingsRequest\x1a\x1a.metalx.v1.DnsmasqSettings\x12O\n" +
+	"\x13ListInstallProfiles\x12\x10.metalx.v1.Empty\x1a&.metalx.v1.ListInstallProfilesResponse\x12Y\n" +
+	"\x14UpsertInstallProfile\x12&.metalx.v1.UpsertInstallProfileRequest\x1a\x19.metalx.v1.InstallProfile\x12G\n" +
+	"\x0fListInstallJobs\x12\x10.metalx.v1.Empty\x1a\".metalx.v1.ListInstallJobsResponse\x12M\n" +
+	"\x10CreateInstallJob\x12\".metalx.v1.CreateInstallJobRequest\x1a\x15.metalx.v1.InstallJob\x12?\n" +
+	"\rGetInstallJob\x12\x17.metalx.v1.InstallJobID\x1a\x15.metalx.v1.InstallJob\x12:\n" +
+	"\x0eGetAppSettings\x12\x10.metalx.v1.Empty\x1a\x16.metalx.v1.AppSettings\x12P\n" +
+	"\x11UpdateAppSettings\x12#.metalx.v1.UpdateAppSettingsRequest\x1a\x16.metalx.v1.AppSettings\x12F\n" +
 	"\fOpenTerminal\x12\x18.metalx.v1.TerminalFrame\x1a\x18.metalx.v1.TerminalFrame(\x010\x01B\x1dZ\x1bmetalx.local/proto/metalxpbb\x06proto3"
 
 var (
@@ -2592,7 +3590,7 @@ func file_metalx_proto_rawDescGZIP() []byte {
 	return file_metalx_proto_rawDescData
 }
 
-var file_metalx_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_metalx_proto_msgTypes = make([]protoimpl.MessageInfo, 36)
 var file_metalx_proto_goTypes = []any{
 	(*Empty)(nil),                        // 0: metalx.v1.Empty
 	(*Ack)(nil),                          // 1: metalx.v1.Ack
@@ -2616,11 +3614,20 @@ var file_metalx_proto_goTypes = []any{
 	(*SystemInfo)(nil),                   // 19: metalx.v1.SystemInfo
 	(*DnsmasqSettings)(nil),              // 20: metalx.v1.DnsmasqSettings
 	(*UpdateDnsmasqSettingsRequest)(nil), // 21: metalx.v1.UpdateDnsmasqSettingsRequest
-	(*ListNodesResponse)(nil),            // 22: metalx.v1.ListNodesResponse
-	(*ListTasksResponse)(nil),            // 23: metalx.v1.ListTasksResponse
-	(*ListAuditsResponse)(nil),           // 24: metalx.v1.ListAuditsResponse
-	(*ListAlertsResponse)(nil),           // 25: metalx.v1.ListAlertsResponse
-	(*RunTaskRequest)(nil),               // 26: metalx.v1.RunTaskRequest
+	(*InstallProfile)(nil),               // 22: metalx.v1.InstallProfile
+	(*InstallJob)(nil),                   // 23: metalx.v1.InstallJob
+	(*ListInstallProfilesResponse)(nil),  // 24: metalx.v1.ListInstallProfilesResponse
+	(*ListInstallJobsResponse)(nil),      // 25: metalx.v1.ListInstallJobsResponse
+	(*UpsertInstallProfileRequest)(nil),  // 26: metalx.v1.UpsertInstallProfileRequest
+	(*CreateInstallJobRequest)(nil),      // 27: metalx.v1.CreateInstallJobRequest
+	(*InstallJobID)(nil),                 // 28: metalx.v1.InstallJobID
+	(*AppSettings)(nil),                  // 29: metalx.v1.AppSettings
+	(*UpdateAppSettingsRequest)(nil),     // 30: metalx.v1.UpdateAppSettingsRequest
+	(*ListNodesResponse)(nil),            // 31: metalx.v1.ListNodesResponse
+	(*ListTasksResponse)(nil),            // 32: metalx.v1.ListTasksResponse
+	(*ListAuditsResponse)(nil),           // 33: metalx.v1.ListAuditsResponse
+	(*ListAlertsResponse)(nil),           // 34: metalx.v1.ListAlertsResponse
+	(*RunTaskRequest)(nil),               // 35: metalx.v1.RunTaskRequest
 }
 var file_metalx_proto_depIdxs = []int32{
 	3,  // 0: metalx.v1.Snapshot.interfaces:type_name -> metalx.v1.InterfaceInfo
@@ -2638,45 +3645,63 @@ var file_metalx_proto_depIdxs = []int32{
 	13, // 12: metalx.v1.Task.results:type_name -> metalx.v1.TaskResult
 	12, // 13: metalx.v1.Summary.hot_nodes:type_name -> metalx.v1.NodeSummary
 	20, // 14: metalx.v1.UpdateDnsmasqSettingsRequest.settings:type_name -> metalx.v1.DnsmasqSettings
-	12, // 15: metalx.v1.ListNodesResponse.items:type_name -> metalx.v1.NodeSummary
-	15, // 16: metalx.v1.ListTasksResponse.items:type_name -> metalx.v1.Task
-	16, // 17: metalx.v1.ListAuditsResponse.items:type_name -> metalx.v1.AuditRecord
-	17, // 18: metalx.v1.ListAlertsResponse.items:type_name -> metalx.v1.AlertRecord
-	0,  // 19: metalx.v1.AgentService.GetSnapshot:input_type -> metalx.v1.Empty
-	9,  // 20: metalx.v1.AgentService.ExecuteCommand:input_type -> metalx.v1.CommandRequest
-	11, // 21: metalx.v1.AgentService.OpenTerminal:input_type -> metalx.v1.TerminalFrame
-	8,  // 22: metalx.v1.ControllerService.ReportSnapshot:input_type -> metalx.v1.Snapshot
-	0,  // 23: metalx.v1.ControllerService.GetSummary:input_type -> metalx.v1.Empty
-	0,  // 24: metalx.v1.ControllerService.ListNodes:input_type -> metalx.v1.Empty
-	2,  // 25: metalx.v1.ControllerService.GetNode:input_type -> metalx.v1.NodeID
-	26, // 26: metalx.v1.ControllerService.RunTask:input_type -> metalx.v1.RunTaskRequest
-	0,  // 27: metalx.v1.ControllerService.ListTasks:input_type -> metalx.v1.Empty
-	0,  // 28: metalx.v1.ControllerService.ListAudits:input_type -> metalx.v1.Empty
-	0,  // 29: metalx.v1.ControllerService.ListAlerts:input_type -> metalx.v1.Empty
-	0,  // 30: metalx.v1.ControllerService.GetSystemInfo:input_type -> metalx.v1.Empty
-	0,  // 31: metalx.v1.ControllerService.GetDnsmasqSettings:input_type -> metalx.v1.Empty
-	21, // 32: metalx.v1.ControllerService.UpdateDnsmasqSettings:input_type -> metalx.v1.UpdateDnsmasqSettingsRequest
-	11, // 33: metalx.v1.ControllerService.OpenTerminal:input_type -> metalx.v1.TerminalFrame
-	8,  // 34: metalx.v1.AgentService.GetSnapshot:output_type -> metalx.v1.Snapshot
-	10, // 35: metalx.v1.AgentService.ExecuteCommand:output_type -> metalx.v1.CommandResult
-	11, // 36: metalx.v1.AgentService.OpenTerminal:output_type -> metalx.v1.TerminalFrame
-	1,  // 37: metalx.v1.ControllerService.ReportSnapshot:output_type -> metalx.v1.Ack
-	18, // 38: metalx.v1.ControllerService.GetSummary:output_type -> metalx.v1.Summary
-	22, // 39: metalx.v1.ControllerService.ListNodes:output_type -> metalx.v1.ListNodesResponse
-	14, // 40: metalx.v1.ControllerService.GetNode:output_type -> metalx.v1.NodeDetail
-	15, // 41: metalx.v1.ControllerService.RunTask:output_type -> metalx.v1.Task
-	23, // 42: metalx.v1.ControllerService.ListTasks:output_type -> metalx.v1.ListTasksResponse
-	24, // 43: metalx.v1.ControllerService.ListAudits:output_type -> metalx.v1.ListAuditsResponse
-	25, // 44: metalx.v1.ControllerService.ListAlerts:output_type -> metalx.v1.ListAlertsResponse
-	19, // 45: metalx.v1.ControllerService.GetSystemInfo:output_type -> metalx.v1.SystemInfo
-	20, // 46: metalx.v1.ControllerService.GetDnsmasqSettings:output_type -> metalx.v1.DnsmasqSettings
-	20, // 47: metalx.v1.ControllerService.UpdateDnsmasqSettings:output_type -> metalx.v1.DnsmasqSettings
-	11, // 48: metalx.v1.ControllerService.OpenTerminal:output_type -> metalx.v1.TerminalFrame
-	34, // [34:49] is the sub-list for method output_type
-	19, // [19:34] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	22, // 15: metalx.v1.ListInstallProfilesResponse.items:type_name -> metalx.v1.InstallProfile
+	23, // 16: metalx.v1.ListInstallJobsResponse.items:type_name -> metalx.v1.InstallJob
+	22, // 17: metalx.v1.UpsertInstallProfileRequest.profile:type_name -> metalx.v1.InstallProfile
+	29, // 18: metalx.v1.UpdateAppSettingsRequest.settings:type_name -> metalx.v1.AppSettings
+	12, // 19: metalx.v1.ListNodesResponse.items:type_name -> metalx.v1.NodeSummary
+	15, // 20: metalx.v1.ListTasksResponse.items:type_name -> metalx.v1.Task
+	16, // 21: metalx.v1.ListAuditsResponse.items:type_name -> metalx.v1.AuditRecord
+	17, // 22: metalx.v1.ListAlertsResponse.items:type_name -> metalx.v1.AlertRecord
+	0,  // 23: metalx.v1.AgentService.GetSnapshot:input_type -> metalx.v1.Empty
+	9,  // 24: metalx.v1.AgentService.ExecuteCommand:input_type -> metalx.v1.CommandRequest
+	11, // 25: metalx.v1.AgentService.OpenTerminal:input_type -> metalx.v1.TerminalFrame
+	8,  // 26: metalx.v1.ControllerService.ReportSnapshot:input_type -> metalx.v1.Snapshot
+	0,  // 27: metalx.v1.ControllerService.GetSummary:input_type -> metalx.v1.Empty
+	0,  // 28: metalx.v1.ControllerService.ListNodes:input_type -> metalx.v1.Empty
+	2,  // 29: metalx.v1.ControllerService.GetNode:input_type -> metalx.v1.NodeID
+	35, // 30: metalx.v1.ControllerService.RunTask:input_type -> metalx.v1.RunTaskRequest
+	0,  // 31: metalx.v1.ControllerService.ListTasks:input_type -> metalx.v1.Empty
+	0,  // 32: metalx.v1.ControllerService.ListAudits:input_type -> metalx.v1.Empty
+	0,  // 33: metalx.v1.ControllerService.ListAlerts:input_type -> metalx.v1.Empty
+	0,  // 34: metalx.v1.ControllerService.GetSystemInfo:input_type -> metalx.v1.Empty
+	0,  // 35: metalx.v1.ControllerService.GetDnsmasqSettings:input_type -> metalx.v1.Empty
+	21, // 36: metalx.v1.ControllerService.UpdateDnsmasqSettings:input_type -> metalx.v1.UpdateDnsmasqSettingsRequest
+	0,  // 37: metalx.v1.ControllerService.ListInstallProfiles:input_type -> metalx.v1.Empty
+	26, // 38: metalx.v1.ControllerService.UpsertInstallProfile:input_type -> metalx.v1.UpsertInstallProfileRequest
+	0,  // 39: metalx.v1.ControllerService.ListInstallJobs:input_type -> metalx.v1.Empty
+	27, // 40: metalx.v1.ControllerService.CreateInstallJob:input_type -> metalx.v1.CreateInstallJobRequest
+	28, // 41: metalx.v1.ControllerService.GetInstallJob:input_type -> metalx.v1.InstallJobID
+	0,  // 42: metalx.v1.ControllerService.GetAppSettings:input_type -> metalx.v1.Empty
+	30, // 43: metalx.v1.ControllerService.UpdateAppSettings:input_type -> metalx.v1.UpdateAppSettingsRequest
+	11, // 44: metalx.v1.ControllerService.OpenTerminal:input_type -> metalx.v1.TerminalFrame
+	8,  // 45: metalx.v1.AgentService.GetSnapshot:output_type -> metalx.v1.Snapshot
+	10, // 46: metalx.v1.AgentService.ExecuteCommand:output_type -> metalx.v1.CommandResult
+	11, // 47: metalx.v1.AgentService.OpenTerminal:output_type -> metalx.v1.TerminalFrame
+	1,  // 48: metalx.v1.ControllerService.ReportSnapshot:output_type -> metalx.v1.Ack
+	18, // 49: metalx.v1.ControllerService.GetSummary:output_type -> metalx.v1.Summary
+	31, // 50: metalx.v1.ControllerService.ListNodes:output_type -> metalx.v1.ListNodesResponse
+	14, // 51: metalx.v1.ControllerService.GetNode:output_type -> metalx.v1.NodeDetail
+	15, // 52: metalx.v1.ControllerService.RunTask:output_type -> metalx.v1.Task
+	32, // 53: metalx.v1.ControllerService.ListTasks:output_type -> metalx.v1.ListTasksResponse
+	33, // 54: metalx.v1.ControllerService.ListAudits:output_type -> metalx.v1.ListAuditsResponse
+	34, // 55: metalx.v1.ControllerService.ListAlerts:output_type -> metalx.v1.ListAlertsResponse
+	19, // 56: metalx.v1.ControllerService.GetSystemInfo:output_type -> metalx.v1.SystemInfo
+	20, // 57: metalx.v1.ControllerService.GetDnsmasqSettings:output_type -> metalx.v1.DnsmasqSettings
+	20, // 58: metalx.v1.ControllerService.UpdateDnsmasqSettings:output_type -> metalx.v1.DnsmasqSettings
+	24, // 59: metalx.v1.ControllerService.ListInstallProfiles:output_type -> metalx.v1.ListInstallProfilesResponse
+	22, // 60: metalx.v1.ControllerService.UpsertInstallProfile:output_type -> metalx.v1.InstallProfile
+	25, // 61: metalx.v1.ControllerService.ListInstallJobs:output_type -> metalx.v1.ListInstallJobsResponse
+	23, // 62: metalx.v1.ControllerService.CreateInstallJob:output_type -> metalx.v1.InstallJob
+	23, // 63: metalx.v1.ControllerService.GetInstallJob:output_type -> metalx.v1.InstallJob
+	29, // 64: metalx.v1.ControllerService.GetAppSettings:output_type -> metalx.v1.AppSettings
+	29, // 65: metalx.v1.ControllerService.UpdateAppSettings:output_type -> metalx.v1.AppSettings
+	11, // 66: metalx.v1.ControllerService.OpenTerminal:output_type -> metalx.v1.TerminalFrame
+	45, // [45:67] is the sub-list for method output_type
+	23, // [23:45] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_metalx_proto_init() }
@@ -2690,7 +3715,7 @@ func file_metalx_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_metalx_proto_rawDesc), len(file_metalx_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   27,
+			NumMessages:   36,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

@@ -59,6 +59,11 @@ The production-ready assets will be located in `dashboard/dist/`. These files ca
 
 The controller now manages generated `dnsmasq` and PXE files. By default it writes them under `runtime/dnsmasq/`.
 You can override the output directory with `MX_DNSMASQ_STATE_DIR` or `./bin/mxctl --dnsmasq-dir /srv/metalx/dnsmasq`.
+For unattended provisioning URLs rendered into PXE and installer configs, set:
+
+- `MX_PROVISIONING_BASE_URL`, for example `http://192.168.56.10:8081`
+- `MX_PUBLIC_CONTROLLER_GRPC_ADDR`, for example `192.168.56.10:19081`
+- `MX_AGENT_BINARY_PATH`, pointing to the `mxagent` binary the controller should serve during install
 
 ### 2. Start the agent
 
@@ -87,14 +92,56 @@ npm install
 npm run dev
 ```
 
+## Local Demo
+
+To run the full stack locally on one machine and preview the provisioning UI:
+
+```bash
+# from repo root
+mkdir -p bin runtime
+go build -o bin/mxctl ./controller/cmd/mxctl
+go build -o bin/mxapi ./webapi/cmd/mxapi
+go build -o bin/mxagent ./agent/cmd/mxagent
+
+MX_PROVISIONING_BASE_URL=http://127.0.0.1:8081 \
+MX_PUBLIC_CONTROLLER_GRPC_ADDR=127.0.0.1:19081 \
+MX_AGENT_BINARY_PATH=bin/mxagent \
+./bin/mxctl
+
+MX_CONTROLLER_ADDR=127.0.0.1:19081 ./bin/mxapi
+
+MX_CONTROLLER_ADDR=127.0.0.1:19081 \
+MX_AGENT_NAME=local-demo-agent \
+./bin/mxagent
+
+cd dashboard
+npm install
+VITE_API_BASE=http://127.0.0.1:8090 npm run dev -- --host 127.0.0.1 --port 5173
+```
+
+Local URLs:
+
+- Controller health: `http://127.0.0.1:8081/healthz`
+- Controller PXE entry: `http://127.0.0.1:8081/boot/<mac>`
+- WebAPI health: `http://127.0.0.1:8090/healthz`
+- Dashboard: `http://127.0.0.1:5173`
+
+The dashboard will auto-login using the default credentials unless you override:
+
+- `VITE_METALX_USER`
+- `VITE_METALX_PASSWORD`
+
 ## Current Capabilities
 
 - Agent exposes real host snapshot and command execution endpoints based on live system data.
 - Controller ingests live agent reports, tracks node state, tasks, alerts, and audits, and exposes cluster APIs.
 - Controller persists editable `dnsmasq` settings, renders `dnsmasq.conf` and `pxelinux.cfg/default`, and stores an audit record for PXE changes.
+- Controller persists install profiles and install jobs, renders iPXE scripts, Ubuntu autoinstall, Debian preseed, and Kickstart files, and serves a post-install agent bootstrap script.
 - WebAPI provides login and authenticated proxy endpoints to the controller.
 - Dashboard renders a live operational command center backed by WebAPI data only.
 - Dashboard system settings allow editing `dnsmasq` parameters for PXE boot, including DHCP range, TFTP root, boot file, kernel/initrd, and boot arguments.
+- Dashboard now includes `装机模板` and `装机任务` for provisioning Ubuntu, Debian, Fedora, CentOS Stream, and RHEL hosts.
+- Dashboard login is no longer hardcoded. Runtime defaults such as refresh interval, terminal shell, provisioning URLs, agent listen addresses, agent report interval, and admin credentials can be updated from `系统设置`.
 
 ## PXE / dnsmasq Workflow
 
@@ -106,6 +153,29 @@ npm run dev
 4. Place your PXE boot assets under the configured TFTP root so the generated menu paths resolve correctly.
 
 The dashboard also shows the rendered `dnsmasq.conf` and PXE menu preview so you can verify the output before wiring the files into a host-level `dnsmasq` service.
+
+## Provisioning Workflow
+
+1. Configure `dnsmasq` so DHCP points PXE clients at your iPXE entrypoint.
+2. In the dashboard, open `装机模板` and edit a profile for the target OS family.
+3. Create a job in `装机任务` by providing the profile and target MAC address.
+4. The client requests `GET /boot/{mac}` from controller and receives an iPXE script.
+5. The installer then downloads one of:
+   - Ubuntu: `/provisioning/jobs/{jobID}/seed/{token}/user-data`
+   - Debian: `/provisioning/jobs/{jobID}/preseed/{token}.cfg`
+   - Fedora / CentOS / RHEL: `/provisioning/jobs/{jobID}/kickstart/{token}.ks`
+6. During unattended install, the rendered post-install hook downloads `/provisioning/jobs/{jobID}/agent-install/{token}.sh`, installs `mxagent`, writes a systemd unit, and starts it.
+7. Installer and agent lifecycle progress is reported back through `/provisioning/jobs/{jobID}/events`.
+
+The default install profiles are seeded automatically for:
+
+- Ubuntu 24.04 LTS
+- Debian 12
+- Fedora Server 41
+- CentOS Stream 9
+- RHEL 9
+
+These profiles are examples. You should edit the install source, kernel/initrd paths, password hash, SSH keys, and optional package list to match your environment.
 
 ## Next Steps
 

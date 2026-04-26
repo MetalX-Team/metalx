@@ -203,6 +203,13 @@ const (
 	ControllerService_GetSystemInfo_FullMethodName         = "/metalx.v1.ControllerService/GetSystemInfo"
 	ControllerService_GetDnsmasqSettings_FullMethodName    = "/metalx.v1.ControllerService/GetDnsmasqSettings"
 	ControllerService_UpdateDnsmasqSettings_FullMethodName = "/metalx.v1.ControllerService/UpdateDnsmasqSettings"
+	ControllerService_ListInstallProfiles_FullMethodName   = "/metalx.v1.ControllerService/ListInstallProfiles"
+	ControllerService_UpsertInstallProfile_FullMethodName  = "/metalx.v1.ControllerService/UpsertInstallProfile"
+	ControllerService_ListInstallJobs_FullMethodName       = "/metalx.v1.ControllerService/ListInstallJobs"
+	ControllerService_CreateInstallJob_FullMethodName      = "/metalx.v1.ControllerService/CreateInstallJob"
+	ControllerService_GetInstallJob_FullMethodName         = "/metalx.v1.ControllerService/GetInstallJob"
+	ControllerService_GetAppSettings_FullMethodName        = "/metalx.v1.ControllerService/GetAppSettings"
+	ControllerService_UpdateAppSettings_FullMethodName     = "/metalx.v1.ControllerService/UpdateAppSettings"
 	ControllerService_OpenTerminal_FullMethodName          = "/metalx.v1.ControllerService/OpenTerminal"
 )
 
@@ -221,6 +228,13 @@ type ControllerServiceClient interface {
 	GetSystemInfo(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*SystemInfo, error)
 	GetDnsmasqSettings(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*DnsmasqSettings, error)
 	UpdateDnsmasqSettings(ctx context.Context, in *UpdateDnsmasqSettingsRequest, opts ...grpc.CallOption) (*DnsmasqSettings, error)
+	ListInstallProfiles(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListInstallProfilesResponse, error)
+	UpsertInstallProfile(ctx context.Context, in *UpsertInstallProfileRequest, opts ...grpc.CallOption) (*InstallProfile, error)
+	ListInstallJobs(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListInstallJobsResponse, error)
+	CreateInstallJob(ctx context.Context, in *CreateInstallJobRequest, opts ...grpc.CallOption) (*InstallJob, error)
+	GetInstallJob(ctx context.Context, in *InstallJobID, opts ...grpc.CallOption) (*InstallJob, error)
+	GetAppSettings(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AppSettings, error)
+	UpdateAppSettings(ctx context.Context, in *UpdateAppSettingsRequest, opts ...grpc.CallOption) (*AppSettings, error)
 	OpenTerminal(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[TerminalFrame, TerminalFrame], error)
 }
 
@@ -342,6 +356,76 @@ func (c *controllerServiceClient) UpdateDnsmasqSettings(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *controllerServiceClient) ListInstallProfiles(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListInstallProfilesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListInstallProfilesResponse)
+	err := c.cc.Invoke(ctx, ControllerService_ListInstallProfiles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *controllerServiceClient) UpsertInstallProfile(ctx context.Context, in *UpsertInstallProfileRequest, opts ...grpc.CallOption) (*InstallProfile, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InstallProfile)
+	err := c.cc.Invoke(ctx, ControllerService_UpsertInstallProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *controllerServiceClient) ListInstallJobs(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListInstallJobsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListInstallJobsResponse)
+	err := c.cc.Invoke(ctx, ControllerService_ListInstallJobs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *controllerServiceClient) CreateInstallJob(ctx context.Context, in *CreateInstallJobRequest, opts ...grpc.CallOption) (*InstallJob, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InstallJob)
+	err := c.cc.Invoke(ctx, ControllerService_CreateInstallJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *controllerServiceClient) GetInstallJob(ctx context.Context, in *InstallJobID, opts ...grpc.CallOption) (*InstallJob, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InstallJob)
+	err := c.cc.Invoke(ctx, ControllerService_GetInstallJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *controllerServiceClient) GetAppSettings(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AppSettings, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AppSettings)
+	err := c.cc.Invoke(ctx, ControllerService_GetAppSettings_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *controllerServiceClient) UpdateAppSettings(ctx context.Context, in *UpdateAppSettingsRequest, opts ...grpc.CallOption) (*AppSettings, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AppSettings)
+	err := c.cc.Invoke(ctx, ControllerService_UpdateAppSettings_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *controllerServiceClient) OpenTerminal(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[TerminalFrame, TerminalFrame], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &ControllerService_ServiceDesc.Streams[0], ControllerService_OpenTerminal_FullMethodName, cOpts...)
@@ -370,6 +454,13 @@ type ControllerServiceServer interface {
 	GetSystemInfo(context.Context, *Empty) (*SystemInfo, error)
 	GetDnsmasqSettings(context.Context, *Empty) (*DnsmasqSettings, error)
 	UpdateDnsmasqSettings(context.Context, *UpdateDnsmasqSettingsRequest) (*DnsmasqSettings, error)
+	ListInstallProfiles(context.Context, *Empty) (*ListInstallProfilesResponse, error)
+	UpsertInstallProfile(context.Context, *UpsertInstallProfileRequest) (*InstallProfile, error)
+	ListInstallJobs(context.Context, *Empty) (*ListInstallJobsResponse, error)
+	CreateInstallJob(context.Context, *CreateInstallJobRequest) (*InstallJob, error)
+	GetInstallJob(context.Context, *InstallJobID) (*InstallJob, error)
+	GetAppSettings(context.Context, *Empty) (*AppSettings, error)
+	UpdateAppSettings(context.Context, *UpdateAppSettingsRequest) (*AppSettings, error)
 	OpenTerminal(grpc.BidiStreamingServer[TerminalFrame, TerminalFrame]) error
 	mustEmbedUnimplementedControllerServiceServer()
 }
@@ -413,6 +504,27 @@ func (UnimplementedControllerServiceServer) GetDnsmasqSettings(context.Context, 
 }
 func (UnimplementedControllerServiceServer) UpdateDnsmasqSettings(context.Context, *UpdateDnsmasqSettingsRequest) (*DnsmasqSettings, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDnsmasqSettings not implemented")
+}
+func (UnimplementedControllerServiceServer) ListInstallProfiles(context.Context, *Empty) (*ListInstallProfilesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListInstallProfiles not implemented")
+}
+func (UnimplementedControllerServiceServer) UpsertInstallProfile(context.Context, *UpsertInstallProfileRequest) (*InstallProfile, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpsertInstallProfile not implemented")
+}
+func (UnimplementedControllerServiceServer) ListInstallJobs(context.Context, *Empty) (*ListInstallJobsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListInstallJobs not implemented")
+}
+func (UnimplementedControllerServiceServer) CreateInstallJob(context.Context, *CreateInstallJobRequest) (*InstallJob, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateInstallJob not implemented")
+}
+func (UnimplementedControllerServiceServer) GetInstallJob(context.Context, *InstallJobID) (*InstallJob, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetInstallJob not implemented")
+}
+func (UnimplementedControllerServiceServer) GetAppSettings(context.Context, *Empty) (*AppSettings, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAppSettings not implemented")
+}
+func (UnimplementedControllerServiceServer) UpdateAppSettings(context.Context, *UpdateAppSettingsRequest) (*AppSettings, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAppSettings not implemented")
 }
 func (UnimplementedControllerServiceServer) OpenTerminal(grpc.BidiStreamingServer[TerminalFrame, TerminalFrame]) error {
 	return status.Errorf(codes.Unimplemented, "method OpenTerminal not implemented")
@@ -636,6 +748,132 @@ func _ControllerService_UpdateDnsmasqSettings_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ControllerService_ListInstallProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControllerServiceServer).ListInstallProfiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ControllerService_ListInstallProfiles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControllerServiceServer).ListInstallProfiles(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ControllerService_UpsertInstallProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpsertInstallProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControllerServiceServer).UpsertInstallProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ControllerService_UpsertInstallProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControllerServiceServer).UpsertInstallProfile(ctx, req.(*UpsertInstallProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ControllerService_ListInstallJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControllerServiceServer).ListInstallJobs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ControllerService_ListInstallJobs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControllerServiceServer).ListInstallJobs(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ControllerService_CreateInstallJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateInstallJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControllerServiceServer).CreateInstallJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ControllerService_CreateInstallJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControllerServiceServer).CreateInstallJob(ctx, req.(*CreateInstallJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ControllerService_GetInstallJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InstallJobID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControllerServiceServer).GetInstallJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ControllerService_GetInstallJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControllerServiceServer).GetInstallJob(ctx, req.(*InstallJobID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ControllerService_GetAppSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControllerServiceServer).GetAppSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ControllerService_GetAppSettings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControllerServiceServer).GetAppSettings(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ControllerService_UpdateAppSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAppSettingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControllerServiceServer).UpdateAppSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ControllerService_UpdateAppSettings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControllerServiceServer).UpdateAppSettings(ctx, req.(*UpdateAppSettingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ControllerService_OpenTerminal_Handler(srv interface{}, stream grpc.ServerStream) error {
 	return srv.(ControllerServiceServer).OpenTerminal(&grpc.GenericServerStream[TerminalFrame, TerminalFrame]{ServerStream: stream})
 }
@@ -693,6 +931,34 @@ var ControllerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateDnsmasqSettings",
 			Handler:    _ControllerService_UpdateDnsmasqSettings_Handler,
+		},
+		{
+			MethodName: "ListInstallProfiles",
+			Handler:    _ControllerService_ListInstallProfiles_Handler,
+		},
+		{
+			MethodName: "UpsertInstallProfile",
+			Handler:    _ControllerService_UpsertInstallProfile_Handler,
+		},
+		{
+			MethodName: "ListInstallJobs",
+			Handler:    _ControllerService_ListInstallJobs_Handler,
+		},
+		{
+			MethodName: "CreateInstallJob",
+			Handler:    _ControllerService_CreateInstallJob_Handler,
+		},
+		{
+			MethodName: "GetInstallJob",
+			Handler:    _ControllerService_GetInstallJob_Handler,
+		},
+		{
+			MethodName: "GetAppSettings",
+			Handler:    _ControllerService_GetAppSettings_Handler,
+		},
+		{
+			MethodName: "UpdateAppSettings",
+			Handler:    _ControllerService_UpdateAppSettings_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

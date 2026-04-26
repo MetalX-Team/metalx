@@ -20,7 +20,8 @@ func (a *App) getDnsmasqSettings() store.DnsmasqSettings {
 }
 
 func (a *App) defaultDnsmasqSettings() store.DnsmasqSettings {
-	tftpRoot := filepath.Join(a.cfg.DNSMasqStateDir, "tftp-root")
+	appSettings := a.getAppSettings()
+	tftpRoot := filepath.Join(appSettings.DNSMasqStateDir, "tftp-root")
 	return store.DnsmasqSettings{
 		Enabled:         false,
 		ListenInterface: "eth0",
@@ -42,9 +43,10 @@ func (a *App) defaultDnsmasqSettings() store.DnsmasqSettings {
 }
 
 func (a *App) materializeDnsmasqSettings(settings store.DnsmasqSettings) store.DnsmasqSettings {
+	appSettings := a.getAppSettings()
 	tftpRoot := strings.TrimSpace(settings.TFTPRoot)
 	if tftpRoot == "" {
-		tftpRoot = filepath.Join(a.cfg.DNSMasqStateDir, "tftp-root")
+		tftpRoot = filepath.Join(appSettings.DNSMasqStateDir, "tftp-root")
 	}
 	settings.TFTPRoot = tftpRoot
 	settings.BootFile = fallback(strings.TrimSpace(settings.BootFile), "pxelinux.0")
@@ -52,7 +54,7 @@ func (a *App) materializeDnsmasqSettings(settings store.DnsmasqSettings) store.D
 	settings.DHCPLeaseTime = fallback(strings.TrimSpace(settings.DHCPLeaseTime), "12h")
 	settings.PXEServiceLabel = fallback(strings.TrimSpace(settings.PXEServiceLabel), "MetalX Network Boot")
 	settings.PXEPrompt = fallback(strings.TrimSpace(settings.PXEPrompt), "Press F8 to launch MetalX PXE installer")
-	settings.ConfigPath = filepath.Join(a.cfg.DNSMasqStateDir, "dnsmasq.conf")
+	settings.ConfigPath = filepath.Join(appSettings.DNSMasqStateDir, "dnsmasq.conf")
 	settings.PXEConfigPath = filepath.Join(tftpRoot, "pxelinux.cfg", "default")
 	settings.RenderedConfig = renderDnsmasqConfig(settings)
 	settings.RenderedPXEMenu = renderPXEMenu(settings)
@@ -93,7 +95,7 @@ func validateDnsmasqSettings(settings store.DnsmasqSettings) error {
 }
 
 func (a *App) persistDnsmasqSettings(settings store.DnsmasqSettings) error {
-	if err := os.MkdirAll(a.cfg.DNSMasqStateDir, 0o755); err != nil {
+	if err := os.MkdirAll(a.getAppSettings().DNSMasqStateDir, 0o755); err != nil {
 		return err
 	}
 	if err := os.MkdirAll(filepath.Dir(settings.PXEConfigPath), 0o755); err != nil {

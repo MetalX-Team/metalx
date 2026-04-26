@@ -103,3 +103,39 @@ func (s *Store) ValidateSession(token string) (bool, error) {
 	}
 	return time.Now().UTC().Before(expiresAt), nil
 }
+
+func (s *Store) PrimaryUser() (string, bool) {
+	var user string
+	err := s.db.QueryRow(`SELECT username FROM users ORDER BY created_at ASC LIMIT 1`).Scan(&user)
+	if err != nil {
+		return "", false
+	}
+	return user, true
+}
+
+func (s *Store) ResetAdmin(user, passwordHash string) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+	if _, err = tx.Exec(`DELETE FROM sessions`); err != nil {
+		return err
+	}
+	if _, err = tx.Exec(`DELETE FROM users`); err != nil {
+		return err
+	}
+	if _, err = tx.Exec(
+		`INSERT INTO users (username, password_hash, created_at) VALUES (?, ?, ?)`,
+		user,
+		passwordHash,
+		time.Now().UTC().Format(time.RFC3339Nano),
+	); err != nil {
+		return err
+	}
+	return tx.Commit()
+}

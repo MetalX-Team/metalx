@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Panel } from './components/Panel'
 import { StatCard } from './components/StatCard'
 
-const sections = ['总览', '节点', '节点详情', '终端与命令', '任务', '告警', '审计', '系统设置']
+const sections = ['总览', '节点', '节点详情', '终端与命令', '任务', '告警', '审计', '系统设置', '装机模板', '装机任务']
 const apiBase = import.meta.env.VITE_API_BASE ?? ''
 const wsBase = (() => {
   if (!apiBase) {
@@ -16,10 +16,6 @@ const wsBase = (() => {
   }
   return window.location.origin.replace(/^http/, 'ws')
 })()
-const credentials = {
-  username: import.meta.env.VITE_METALX_USER ?? 'admin',
-  password: import.meta.env.VITE_METALX_PASSWORD ?? 'metalx-admin-2026',
-}
 
 function pct(value) {
   return `${Number(value ?? 0).toFixed(1)}%`
@@ -93,6 +89,64 @@ function parseDnsServers(value) {
     .filter(Boolean)
 }
 
+function parseLines(value) {
+  return value
+    .split('\n')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+function toInstallProfileDraft(profile) {
+  return {
+    id: profile?.id ?? '',
+    name: profile?.name ?? '',
+    osFamily: profile?.osFamily ?? 'ubuntu',
+    osVersion: profile?.osVersion ?? '',
+    architecture: profile?.architecture ?? 'amd64',
+    firmware: profile?.firmware ?? 'uefi',
+    installSource: profile?.installSource ?? '',
+    bootKernelPath: profile?.bootKernelPath ?? '',
+    bootInitrdPath: profile?.bootInitrdPath ?? '',
+    hostnamePattern: profile?.hostnamePattern ?? '',
+    timezone: profile?.timezone ?? 'Etc/UTC',
+    locale: profile?.locale ?? 'en_US.UTF-8',
+    keyboardLayout: profile?.keyboardLayout ?? 'us',
+    adminUsername: profile?.adminUsername ?? 'metalx',
+    adminPasswordHash: profile?.adminPasswordHash ?? '',
+    sshAuthorizedKeysText: (profile?.sshAuthorizedKeys ?? []).join('\n'),
+    packagesText: (profile?.packages ?? []).join('\n'),
+    packageMirror: profile?.packageMirror ?? '',
+    diskLayout: profile?.diskLayout ?? '',
+    networkMode: profile?.networkMode ?? 'dhcp',
+    agentBinaryUrl: profile?.agentBinaryUrl ?? '',
+    agentServiceName: profile?.agentServiceName ?? 'metalx-agent',
+    controllerGrpcAddress: profile?.controllerGrpcAddress ?? '',
+    extraKernelArgs: profile?.extraKernelArgs ?? '',
+    postInstallScript: profile?.postInstallScript ?? '',
+    enabled: profile?.enabled ?? true,
+  }
+}
+
+function toRuntimeDraft(settings) {
+  return {
+    allowShell: settings?.allowShell ?? true,
+    discoveryPort: settings?.discoveryPort ?? 9527,
+    dnsmasqStateDir: settings?.dnsmasqStateDir ?? '',
+    provisioningBaseUrl: settings?.provisioningBaseUrl ?? '',
+    publicGrpcAddress: settings?.publicGrpcAddress ?? '',
+    agentBinaryPath: settings?.agentBinaryPath ?? '',
+    defaultNodeAddr: settings?.defaultNodeAddr ?? '',
+    dashboardRefreshIntervalMs: settings?.dashboardRefreshIntervalMs ?? 1000,
+    dashboardDefaultCommand: settings?.dashboardDefaultCommand ?? 'uptime',
+    terminalShell: settings?.terminalShell ?? '/bin/bash',
+    agentListenAddress: settings?.agentListenAddress ?? ':18081',
+    agentGrpcListenAddress: settings?.agentGrpcListenAddress ?? ':19091',
+    agentReportIntervalSeconds: settings?.agentReportIntervalSeconds ?? 1,
+    adminUser: settings?.adminUser ?? '',
+    adminPassword: '',
+  }
+}
+
 async function request(path, token, options = {}) {
   const response = await fetch(`${apiBase}${path}`, {
     ...options,
@@ -114,6 +168,9 @@ async function request(path, token, options = {}) {
 export default function App() {
   const [activeSection, setActiveSection] = useState('总览')
   const [token, setToken] = useState('')
+  const [loginUsername, setLoginUsername] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
   const [summary, setSummary] = useState(null)
   const [nodes, setNodes] = useState([])
   const [selectedNodeId, setSelectedNodeId] = useState('')
@@ -122,7 +179,7 @@ export default function App() {
   const [audits, setAudits] = useState([])
   const [alerts, setAlerts] = useState([])
   const [system, setSystem] = useState(null)
-  const [command, setCommand] = useState('uptime')
+  const [command, setCommand] = useState('')
   const [selectedTargets, setSelectedTargets] = useState([])
   const [taskOutput, setTaskOutput] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -137,39 +194,26 @@ export default function App() {
   const [lastRefreshAt, setLastRefreshAt] = useState('')
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [dnsmasqSettings, setDnsmasqSettings] = useState(null)
+  const [runtimeSettings, setRuntimeSettings] = useState(null)
+  const [runtimeDraft, setRuntimeDraft] = useState(() => toRuntimeDraft(null))
+  const [runtimeDirty, setRuntimeDirty] = useState(false)
+  const [runtimeSaving, setRuntimeSaving] = useState(false)
   const [dnsmasqDraft, setDnsmasqDraft] = useState(() => toDnsmasqDraft(null))
   const [dnsmasqDirty, setDnsmasqDirty] = useState(false)
   const [dnsmasqSaving, setDnsmasqSaving] = useState(false)
+  const [installProfiles, setInstallProfiles] = useState([])
+  const [installJobs, setInstallJobs] = useState([])
+  const [selectedProfileId, setSelectedProfileId] = useState('')
+  const [profileDraft, setProfileDraft] = useState(() => toInstallProfileDraft(null))
+  const [profileDirty, setProfileDirty] = useState(false)
+  const [profileSaving, setProfileSaving] = useState(false)
+  const [jobDraft, setJobDraft] = useState({ profileId: '', macAddress: '', hostname: '', nodeId: '' })
+  const [jobSubmitting, setJobSubmitting] = useState(false)
+  const refreshIntervalMs = Math.max(Number(runtimeSettings?.dashboardRefreshIntervalMs ?? 1000), 500)
+  const sectionTitle = activeSection === '总览' ? '集群实时总览' : activeSection
 
   useEffect(() => {
-    let cancelled = false
-
-    async function login() {
-      try {
-        const response = await fetch(`${apiBase}/api/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(credentials),
-        })
-        if (!response.ok) {
-          throw new Error(await response.text())
-        }
-        const payload = await response.json()
-        if (!cancelled) {
-          setToken(payload.token)
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setLoading(false)
-          setError(`登录失败：${err.message}`)
-        }
-      }
-    }
-
-    login()
-    return () => {
-      cancelled = true
-    }
+    setLoading(false)
   }, [])
 
   useEffect(() => {
@@ -186,14 +230,17 @@ export default function App() {
       inFlight = true
       setIsRefreshing(true)
       try {
-        const [summaryData, nodesData, tasksData, auditsData, alertsData, systemData, dnsmasqData] = await Promise.all([
+        const [summaryData, nodesData, tasksData, auditsData, alertsData, systemData, runtimeData, dnsmasqData, profilesData, jobsData] = await Promise.all([
           request('/api/summary', token),
           request('/api/nodes', token),
           request('/api/tasks', token),
           request('/api/audits', token),
           request('/api/alerts', token),
           request('/api/system', token),
+          request('/api/settings/runtime', token),
           request('/api/system/dnsmasq', token),
+          request('/api/install/profiles', token),
+          request('/api/install/jobs', token),
         ])
 
         if (cancelled) return
@@ -216,7 +263,10 @@ export default function App() {
         setAudits(auditsData.items ?? [])
         setAlerts(alertsData.items ?? [])
         setSystem(systemData)
+        setRuntimeSettings(runtimeData)
         setDnsmasqSettings(dnsmasqData)
+        setInstallProfiles(profilesData.items ?? [])
+        setInstallJobs(jobsData.items ?? [])
         setNodeDetail(detailData)
         setSelectedNodeId(resolvedNodeId)
         setSelectedTargets((current) => {
@@ -238,7 +288,7 @@ export default function App() {
         inFlight = false
         if (!cancelled) {
           setIsRefreshing(false)
-          timerId = window.setTimeout(load, 1000)
+          timerId = window.setTimeout(load, refreshIntervalMs)
         }
       }
     }
@@ -248,12 +298,33 @@ export default function App() {
       cancelled = true
       window.clearTimeout(timerId)
     }
-  }, [token, selectedNodeId])
+  }, [token, selectedNodeId, refreshIntervalMs])
 
   useEffect(() => {
     if (!dnsmasqSettings || dnsmasqDirty) return
     setDnsmasqDraft(toDnsmasqDraft(dnsmasqSettings))
   }, [dnsmasqSettings, dnsmasqDirty])
+
+  useEffect(() => {
+    if (!runtimeSettings || runtimeDirty) return
+    setRuntimeDraft(toRuntimeDraft(runtimeSettings))
+    setCommand((current) => current || runtimeSettings.dashboardDefaultCommand || 'uptime')
+  }, [runtimeSettings, runtimeDirty])
+
+  useEffect(() => {
+    if (installProfiles.length === 0) return
+    const nextSelected = installProfiles.find((item) => item.id === selectedProfileId) ?? installProfiles[0]
+    if (!selectedProfileId || nextSelected.id !== selectedProfileId) {
+      setSelectedProfileId(nextSelected.id)
+    }
+    if (!profileDirty) {
+      setProfileDraft(toInstallProfileDraft(nextSelected))
+    }
+    setJobDraft((current) => ({
+      ...current,
+      profileId: current.profileId || nextSelected.id,
+    }))
+  }, [installProfiles, selectedProfileId, profileDirty])
 
   useEffect(() => () => {
     if (terminalSocket) {
@@ -264,6 +335,10 @@ export default function App() {
   const selectedNode = useMemo(
     () => nodes.find((node) => node.id === selectedNodeId) ?? null,
     [nodes, selectedNodeId],
+  )
+  const selectedProfile = useMemo(
+    () => installProfiles.find((item) => item.id === selectedProfileId) ?? null,
+    [installProfiles, selectedProfileId],
   )
   const nodeSummary = nodeDetail?.summary ?? null
 
@@ -304,6 +379,35 @@ export default function App() {
     )
   }
 
+  async function login() {
+    if (!loginUsername.trim() || !loginPassword) {
+      return
+    }
+    setIsLoggingIn(true)
+    setError('')
+    try {
+      const response = await fetch(`${apiBase}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: loginUsername.trim(),
+          password: loginPassword,
+        }),
+      })
+      if (!response.ok) {
+        throw new Error(await response.text())
+      }
+      const payload = await response.json()
+      setToken(payload.token)
+      setLoginPassword('')
+      setLoading(true)
+    } catch (err) {
+      setError(`登录失败：${err.message}`)
+    } finally {
+      setIsLoggingIn(false)
+    }
+  }
+
   function openTerminal() {
     if (!token || !selectedNodeId) {
       return
@@ -321,7 +425,7 @@ export default function App() {
       socket.send(JSON.stringify({
         nodeId: selectedNodeId,
         sessionId,
-        shell: '/bin/bash',
+        shell: runtimeSettings?.terminalShell || '/bin/bash',
         open: true,
         cols: 120,
         rows: 32,
@@ -379,6 +483,47 @@ export default function App() {
     setDnsmasqDraft((current) => ({ ...current, [field]: value }))
   }
 
+  function updateRuntimeDraft(field, value) {
+    setRuntimeDirty(true)
+    setRuntimeDraft((current) => ({ ...current, [field]: value }))
+  }
+
+  async function saveRuntimeSettings() {
+    if (!token) return
+    setRuntimeSaving(true)
+    setError('')
+    const shouldRelogin = Boolean(runtimeDraft.adminPassword)
+    try {
+      const payload = await request('/api/settings/runtime', token, {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...runtimeDraft,
+          discoveryPort: Number(runtimeDraft.discoveryPort),
+          dashboardRefreshIntervalMs: Number(runtimeDraft.dashboardRefreshIntervalMs),
+          agentReportIntervalSeconds: Number(runtimeDraft.agentReportIntervalSeconds),
+          actor: 'dashboard',
+        }),
+      })
+      setRuntimeSettings(payload)
+      setRuntimeDraft(toRuntimeDraft(payload))
+      setRuntimeDirty(false)
+      if (payload.dashboardDefaultCommand) {
+        setCommand(payload.dashboardDefaultCommand)
+      }
+      if (payload.adminUser) {
+        setLoginUsername(payload.adminUser)
+      }
+      if (shouldRelogin) {
+        setToken('')
+        setLoginPassword('')
+      }
+    } catch (err) {
+      setError(`运行配置保存失败：${err.message}`)
+    } finally {
+      setRuntimeSaving(false)
+    }
+  }
+
   async function saveDnsmasqSettings() {
     if (!token) return
     setDnsmasqSaving(true)
@@ -416,12 +561,123 @@ export default function App() {
     }
   }
 
+  function updateProfileDraft(field, value) {
+    setProfileDirty(true)
+    setProfileDraft((current) => ({ ...current, [field]: value }))
+  }
+
+  async function saveInstallProfile() {
+    if (!token) return
+    setProfileSaving(true)
+    setError('')
+    try {
+      const payload = await request('/api/install/profiles', token, {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...profileDraft,
+          sshAuthorizedKeys: parseLines(profileDraft.sshAuthorizedKeysText),
+          packages: parseLines(profileDraft.packagesText),
+          actor: 'dashboard',
+        }),
+      })
+      setInstallProfiles((current) => {
+        const rest = current.filter((item) => item.id !== payload.id)
+        return [...rest, payload].sort((left, right) => left.name.localeCompare(right.name, 'zh-CN'))
+      })
+      setSelectedProfileId(payload.id)
+      setProfileDraft(toInstallProfileDraft(payload))
+      setProfileDirty(false)
+      setJobDraft((current) => ({ ...current, profileId: payload.id }))
+    } catch (err) {
+      setError(`装机模板保存失败：${err.message}`)
+    } finally {
+      setProfileSaving(false)
+    }
+  }
+
+  async function createInstallJob() {
+    if (!token || !jobDraft.profileId || !jobDraft.macAddress.trim()) {
+      return
+    }
+    setJobSubmitting(true)
+    setError('')
+    try {
+      const payload = await request('/api/install/jobs', token, {
+        method: 'POST',
+        body: JSON.stringify({
+          profileId: jobDraft.profileId,
+          macAddress: jobDraft.macAddress.trim(),
+          hostname: jobDraft.hostname.trim(),
+          nodeId: jobDraft.nodeId.trim(),
+          actor: 'dashboard',
+        }),
+      })
+      setInstallJobs((current) => [payload, ...current.filter((item) => item.id !== payload.id)])
+      setJobDraft((current) => ({ ...current, macAddress: '', hostname: '', nodeId: '' }))
+      setActiveSection('装机任务')
+    } catch (err) {
+      setError(`装机任务创建失败：${err.message}`)
+    } finally {
+      setJobSubmitting(false)
+    }
+  }
+
+  if (!token) {
+    return (
+      <div className="app-shell app-shell--auth">
+        <main className="content content--auth">
+          <section className="hero hero--auth">
+            <div>
+              <p className="eyebrow">Control Plane Access</p>
+              <h2>MetalX 登录</h2>
+              <p className="hero__meta">
+                登录后可在系统设置中修改运行配置与管理员凭证
+              </p>
+            </div>
+          </section>
+          {error ? <div className="banner banner--error">{error}</div> : null}
+          <section className="content-grid">
+            <Panel title="管理员登录">
+              <div className="control-stack">
+                <label className="field">
+                  <span>用户名</span>
+                  <input className="text-input" value={loginUsername} onChange={(event) => setLoginUsername(event.target.value)} />
+                </label>
+                <label className="field">
+                  <span>密码</span>
+                  <input
+                    className="text-input"
+                    type="password"
+                    value={loginPassword}
+                    onChange={(event) => setLoginPassword(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault()
+                        login()
+                      }
+                    }}
+                  />
+                </label>
+                <div className="hero__actions">
+                  <button className="button button--primary" onClick={login} disabled={isLoggingIn}>
+                    {isLoggingIn ? '登录中...' : '登录'}
+                  </button>
+                </div>
+              </div>
+            </Panel>
+          </section>
+        </main>
+      </div>
+    )
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
           <p className="eyebrow">MetalX</p>
           <h1>运维总控台</h1>
+          <p className="sidebar__copy">白色工作台视图，聚焦节点、装机和实时执行路径。</p>
         </div>
 
         <nav className="nav-list">
@@ -437,18 +693,29 @@ export default function App() {
         </nav>
 
         <div className="sidebar__foot">
-          <span>接口地址：{apiBase}</span>
-          <span>节点数量：{nodes.length}</span>
-          <span>当前节点：{selectedNode?.name ?? '-'}</span>
+          <div className="sidebar__meta-card">
+            <span>接口地址</span>
+            <strong>{apiBase || window.location.origin}</strong>
+          </div>
+          <div className="sidebar__meta-card">
+            <span>节点数量</span>
+            <strong>{nodes.length}</strong>
+          </div>
+          <div className="sidebar__meta-card">
+            <span>当前节点</span>
+            <strong>{selectedNode?.name ?? '-'}</strong>
+          </div>
         </div>
       </aside>
 
       <main className="content">
         <section className="hero">
           <div>
-            <h2>集群实时总览</h2>
+            <p className="eyebrow">Live Operations</p>
+            <h2>{sectionTitle}</h2>
             <p className="hero__meta">
-              页面刷新频率：1 秒
+              <span>当前视图：{activeSection}</span>
+              <span>刷新频率：{(refreshIntervalMs / 1000).toFixed(refreshIntervalMs % 1000 === 0 ? 0 : 1)} 秒</span>
               <span>状态：{isRefreshing ? '刷新中' : '实时更新中'}</span>
               <span>最近刷新：{formatTime(lastRefreshAt)}</span>
             </p>
@@ -732,6 +999,92 @@ export default function App() {
                 <div className="mini-stat"><span>系统时间</span><strong>{formatTime(system.timestamp)}</strong></div>
               </div>
 
+              {runtimeSettings ? (
+                <div className="control-stack">
+                  <div className="panel-subtitle">运行配置</div>
+                  <div className="form-grid">
+                    <label className="field">
+                      <span>允许命令执行</span>
+                      <label className="toggle">
+                        <input type="checkbox" checked={runtimeDraft.allowShell} onChange={(event) => updateRuntimeDraft('allowShell', event.target.checked)} />
+                        <span>{runtimeDraft.allowShell ? '启用' : '关闭'}</span>
+                      </label>
+                    </label>
+                    <label className="field">
+                      <span>发现端口</span>
+                      <input className="text-input" value={runtimeDraft.discoveryPort} onChange={(event) => updateRuntimeDraft('discoveryPort', event.target.value)} />
+                    </label>
+                    <label className="field field--full">
+                      <span>Provisioning Base URL</span>
+                      <input className="text-input" value={runtimeDraft.provisioningBaseUrl} onChange={(event) => updateRuntimeDraft('provisioningBaseUrl', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>Public gRPC 地址</span>
+                      <input className="text-input" value={runtimeDraft.publicGrpcAddress} onChange={(event) => updateRuntimeDraft('publicGrpcAddress', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>默认节点地址</span>
+                      <input className="text-input" value={runtimeDraft.defaultNodeAddr} onChange={(event) => updateRuntimeDraft('defaultNodeAddr', event.target.value)} />
+                    </label>
+                    <label className="field field--full">
+                      <span>Agent 二进制路径</span>
+                      <input className="text-input" value={runtimeDraft.agentBinaryPath} onChange={(event) => updateRuntimeDraft('agentBinaryPath', event.target.value)} />
+                    </label>
+                    <label className="field field--full">
+                      <span>dnsmasq 状态目录</span>
+                      <input className="text-input" value={runtimeDraft.dnsmasqStateDir} onChange={(event) => updateRuntimeDraft('dnsmasqStateDir', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>Dashboard 刷新间隔(ms)</span>
+                      <input className="text-input" value={runtimeDraft.dashboardRefreshIntervalMs} onChange={(event) => updateRuntimeDraft('dashboardRefreshIntervalMs', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>默认命令</span>
+                      <input className="text-input" value={runtimeDraft.dashboardDefaultCommand} onChange={(event) => updateRuntimeDraft('dashboardDefaultCommand', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>终端 Shell</span>
+                      <input className="text-input" value={runtimeDraft.terminalShell} onChange={(event) => updateRuntimeDraft('terminalShell', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>Agent HTTP 监听</span>
+                      <input className="text-input" value={runtimeDraft.agentListenAddress} onChange={(event) => updateRuntimeDraft('agentListenAddress', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>Agent gRPC 监听</span>
+                      <input className="text-input" value={runtimeDraft.agentGrpcListenAddress} onChange={(event) => updateRuntimeDraft('agentGrpcListenAddress', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>Agent 上报周期(秒)</span>
+                      <input className="text-input" value={runtimeDraft.agentReportIntervalSeconds} onChange={(event) => updateRuntimeDraft('agentReportIntervalSeconds', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>管理员用户名</span>
+                      <input className="text-input" value={runtimeDraft.adminUser} onChange={(event) => updateRuntimeDraft('adminUser', event.target.value)} />
+                    </label>
+                    <label className="field">
+                      <span>管理员新密码</span>
+                      <input className="text-input" type="password" value={runtimeDraft.adminPassword} onChange={(event) => updateRuntimeDraft('adminPassword', event.target.value)} placeholder="留空则不修改" />
+                    </label>
+                  </div>
+                  <div className="hero__actions">
+                    <button className="button button--primary" onClick={saveRuntimeSettings} disabled={runtimeSaving}>
+                      {runtimeSaving ? '保存中...' : '保存运行配置'}
+                    </button>
+                    <button
+                      className="button"
+                      onClick={() => {
+                        setRuntimeDraft(toRuntimeDraft(runtimeSettings))
+                        setRuntimeDirty(false)
+                      }}
+                      disabled={!runtimeDirty || runtimeSaving}
+                    >
+                      还原修改
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
               {dnsmasqSettings ? (
                 <div className="control-stack">
                   <div className="panel-subtitle">dnsmasq / PXE 引导配置</div>
@@ -843,6 +1196,223 @@ export default function App() {
                   </div>
                 </div>
               ) : null}
+            </Panel>
+          )}
+
+          {activeSection === '装机模板' && (
+            <Panel title="装机模板" subtitle={selectedProfile?.name ?? '新模板'}>
+              <div className="control-stack">
+                <div className="target-list">
+                  {installProfiles.map((profile) => (
+                    <button
+                      key={profile.id}
+                      className={`target-chip target-chip--button${selectedProfileId === profile.id ? ' is-active' : ''}`}
+                      onClick={() => {
+                        setSelectedProfileId(profile.id)
+                        setProfileDraft(toInstallProfileDraft(profile))
+                        setProfileDirty(false)
+                      }}
+                    >
+                      {profile.name}
+                    </button>
+                  ))}
+                  <button
+                    className="target-chip target-chip--button"
+                    onClick={() => {
+                      setSelectedProfileId('')
+                      setProfileDraft(toInstallProfileDraft(null))
+                      setProfileDirty(false)
+                    }}
+                  >
+                    新建模板
+                  </button>
+                </div>
+
+                <div className="form-grid">
+                  <label className="field">
+                    <span>模板名称</span>
+                    <input className="text-input" value={profileDraft.name} onChange={(event) => updateProfileDraft('name', event.target.value)} />
+                  </label>
+                  <label className="field">
+                    <span>发行版族</span>
+                    <select className="text-input" value={profileDraft.osFamily} onChange={(event) => updateProfileDraft('osFamily', event.target.value)}>
+                      <option value="ubuntu">ubuntu</option>
+                      <option value="debian">debian</option>
+                      <option value="fedora">fedora</option>
+                      <option value="centos">centos</option>
+                      <option value="rhel">rhel</option>
+                    </select>
+                  </label>
+                  <label className="field">
+                    <span>版本</span>
+                    <input className="text-input" value={profileDraft.osVersion} onChange={(event) => updateProfileDraft('osVersion', event.target.value)} />
+                  </label>
+                  <label className="field">
+                    <span>架构</span>
+                    <input className="text-input" value={profileDraft.architecture} onChange={(event) => updateProfileDraft('architecture', event.target.value)} />
+                  </label>
+                  <label className="field">
+                    <span>固件</span>
+                    <input className="text-input" value={profileDraft.firmware} onChange={(event) => updateProfileDraft('firmware', event.target.value)} />
+                  </label>
+                  <label className="field">
+                    <span>磁盘布局</span>
+                    <input className="text-input" value={profileDraft.diskLayout} onChange={(event) => updateProfileDraft('diskLayout', event.target.value)} placeholder="Ubuntu: direct, EL: lvm" />
+                  </label>
+                  <label className="field field--full">
+                    <span>安装源</span>
+                    <input className="text-input" value={profileDraft.installSource} onChange={(event) => updateProfileDraft('installSource', event.target.value)} />
+                  </label>
+                  <label className="field">
+                    <span>Kernel 路径</span>
+                    <input className="text-input" value={profileDraft.bootKernelPath} onChange={(event) => updateProfileDraft('bootKernelPath', event.target.value)} />
+                  </label>
+                  <label className="field">
+                    <span>Initrd 路径</span>
+                    <input className="text-input" value={profileDraft.bootInitrdPath} onChange={(event) => updateProfileDraft('bootInitrdPath', event.target.value)} />
+                  </label>
+                  <label className="field">
+                    <span>主机名模板</span>
+                    <input className="text-input" value={profileDraft.hostnamePattern} onChange={(event) => updateProfileDraft('hostnamePattern', event.target.value)} placeholder="例如 ubuntu-${mac}" />
+                  </label>
+                  <label className="field">
+                    <span>管理员用户名</span>
+                    <input className="text-input" value={profileDraft.adminUsername} onChange={(event) => updateProfileDraft('adminUsername', event.target.value)} />
+                  </label>
+                  <label className="field field--full">
+                    <span>管理员密码哈希</span>
+                    <input className="text-input" value={profileDraft.adminPasswordHash} onChange={(event) => updateProfileDraft('adminPasswordHash', event.target.value)} placeholder="建议使用 openssl passwd -6 生成" />
+                  </label>
+                  <label className="field">
+                    <span>时区</span>
+                    <input className="text-input" value={profileDraft.timezone} onChange={(event) => updateProfileDraft('timezone', event.target.value)} />
+                  </label>
+                  <label className="field">
+                    <span>语言环境</span>
+                    <input className="text-input" value={profileDraft.locale} onChange={(event) => updateProfileDraft('locale', event.target.value)} />
+                  </label>
+                  <label className="field">
+                    <span>键盘布局</span>
+                    <input className="text-input" value={profileDraft.keyboardLayout} onChange={(event) => updateProfileDraft('keyboardLayout', event.target.value)} />
+                  </label>
+                  <label className="field">
+                    <span>网络模式</span>
+                    <input className="text-input" value={profileDraft.networkMode} onChange={(event) => updateProfileDraft('networkMode', event.target.value)} />
+                  </label>
+                  <label className="field field--full">
+                    <span>SSH 公钥</span>
+                    <textarea value={profileDraft.sshAuthorizedKeysText} onChange={(event) => updateProfileDraft('sshAuthorizedKeysText', event.target.value)} rows={4} />
+                  </label>
+                  <label className="field field--full">
+                    <span>附加软件包</span>
+                    <textarea value={profileDraft.packagesText} onChange={(event) => updateProfileDraft('packagesText', event.target.value)} rows={4} />
+                  </label>
+                  <label className="field field--full">
+                    <span>Agent 二进制 URL</span>
+                    <input className="text-input" value={profileDraft.agentBinaryUrl} onChange={(event) => updateProfileDraft('agentBinaryUrl', event.target.value)} placeholder="留空则使用 controller 暴露的 /provisioning/jobs/.../mxagent" />
+                  </label>
+                  <label className="field">
+                    <span>Agent 服务名</span>
+                    <input className="text-input" value={profileDraft.agentServiceName} onChange={(event) => updateProfileDraft('agentServiceName', event.target.value)} />
+                  </label>
+                  <label className="field">
+                    <span>Controller gRPC 地址</span>
+                    <input className="text-input" value={profileDraft.controllerGrpcAddress} onChange={(event) => updateProfileDraft('controllerGrpcAddress', event.target.value)} />
+                  </label>
+                  <label className="field field--full">
+                    <span>额外内核参数</span>
+                    <input className="text-input" value={profileDraft.extraKernelArgs} onChange={(event) => updateProfileDraft('extraKernelArgs', event.target.value)} />
+                  </label>
+                  <label className="field field--full">
+                    <span>额外后置脚本</span>
+                    <textarea value={profileDraft.postInstallScript} onChange={(event) => updateProfileDraft('postInstallScript', event.target.value)} rows={5} />
+                  </label>
+                  <label className="field">
+                    <span>模板状态</span>
+                    <label className="toggle">
+                      <input type="checkbox" checked={profileDraft.enabled} onChange={(event) => updateProfileDraft('enabled', event.target.checked)} />
+                      <span>{profileDraft.enabled ? '启用' : '停用'}</span>
+                    </label>
+                  </label>
+                </div>
+
+                <div className="hero__actions">
+                  <button className="button button--primary" onClick={saveInstallProfile} disabled={profileSaving}>
+                    {profileSaving ? '保存中...' : '保存装机模板'}
+                  </button>
+                  <button
+                    className="button"
+                    onClick={() => {
+                      setProfileDraft(toInstallProfileDraft(selectedProfile))
+                      setProfileDirty(false)
+                    }}
+                    disabled={!profileDirty || profileSaving}
+                  >
+                    还原修改
+                  </button>
+                </div>
+              </div>
+            </Panel>
+          )}
+
+          {activeSection === '装机任务' && (
+            <Panel title="装机任务">
+              <div className="control-stack">
+                <div className="form-grid">
+                  <label className="field">
+                    <span>装机模板</span>
+                    <select className="text-input" value={jobDraft.profileId} onChange={(event) => setJobDraft((current) => ({ ...current, profileId: event.target.value }))}>
+                      {installProfiles.map((profile) => (
+                        <option key={profile.id} value={profile.id}>{profile.name}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="field">
+                    <span>MAC 地址</span>
+                    <input className="text-input" value={jobDraft.macAddress} onChange={(event) => setJobDraft((current) => ({ ...current, macAddress: event.target.value }))} placeholder="例如 52:54:00:12:34:56" />
+                  </label>
+                  <label className="field">
+                    <span>目标主机名</span>
+                    <input className="text-input" value={jobDraft.hostname} onChange={(event) => setJobDraft((current) => ({ ...current, hostname: event.target.value }))} />
+                  </label>
+                  <label className="field">
+                    <span>节点 ID</span>
+                    <input className="text-input" value={jobDraft.nodeId} onChange={(event) => setJobDraft((current) => ({ ...current, nodeId: event.target.value }))} />
+                  </label>
+                </div>
+
+                <div className="hero__actions">
+                  <button className="button button--primary" onClick={createInstallJob} disabled={jobSubmitting}>
+                    {jobSubmitting ? '创建中...' : '创建装机任务'}
+                  </button>
+                </div>
+
+                {installJobs.map((job) => (
+                  <div className="task-card" key={job.id}>
+                    <div className="task-card__head">
+                      <strong>{job.profileName}</strong>
+                      <span className={`badge badge--${statusTone(job.status === 'failed' ? 'failed' : job.status === 'planned' ? 'pending' : 'running')}`}>{job.status}</span>
+                      <span>{job.hostname}</span>
+                      <span>{job.macAddress}</span>
+                    </div>
+                    <div className="overview-grid">
+                      <div className="mini-stat"><span>Boot URL</span><strong>{job.bootUrl}</strong></div>
+                      <div className="mini-stat"><span>配置 URL</span><strong>{job.configUrl}</strong></div>
+                      <div className="mini-stat"><span>Agent 脚本</span><strong>{job.agentScriptUrl}</strong></div>
+                    </div>
+                    <div className="dual-list">
+                      <div>
+                        <h3>iPXE 预览</h3>
+                        <pre>{job.bootPreview}</pre>
+                      </div>
+                      <div>
+                        <h3>自动安装文件预览</h3>
+                        <pre>{job.configPreview}</pre>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </Panel>
           )}
 

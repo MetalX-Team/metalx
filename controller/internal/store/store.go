@@ -129,6 +129,82 @@ type DnsmasqSettings struct {
 	UpdatedAt       time.Time `json:"updatedAt"`
 }
 
+type InstallProfile struct {
+	ID                 string    `json:"id"`
+	Name               string    `json:"name"`
+	OSFamily           string    `json:"osFamily"`
+	OSVersion          string    `json:"osVersion"`
+	Architecture       string    `json:"architecture"`
+	Firmware           string    `json:"firmware"`
+	InstallSource      string    `json:"installSource"`
+	BootKernelPath     string    `json:"bootKernelPath"`
+	BootInitrdPath     string    `json:"bootInitrdPath"`
+	HostnamePattern    string    `json:"hostnamePattern"`
+	Timezone           string    `json:"timezone"`
+	Locale             string    `json:"locale"`
+	KeyboardLayout     string    `json:"keyboardLayout"`
+	AdminUsername      string    `json:"adminUsername"`
+	AdminPasswordHash  string    `json:"adminPasswordHash"`
+	SSHAuthorizedKeys  []string  `json:"sshAuthorizedKeys"`
+	Packages           []string  `json:"packages"`
+	PackageMirror      string    `json:"packageMirror"`
+	DiskLayout         string    `json:"diskLayout"`
+	NetworkMode        string    `json:"networkMode"`
+	AgentBinaryURL     string    `json:"agentBinaryUrl"`
+	AgentServiceName   string    `json:"agentServiceName"`
+	ControllerGRPCAddr string    `json:"controllerGrpcAddress"`
+	ExtraKernelArgs    string    `json:"extraKernelArgs"`
+	PostInstallScript  string    `json:"postInstallScript"`
+	Enabled            bool      `json:"enabled"`
+	CreatedAt          time.Time `json:"createdAt"`
+	UpdatedAt          time.Time `json:"updatedAt"`
+}
+
+type InstallEvent struct {
+	Phase     string    `json:"phase"`
+	Status    string    `json:"status"`
+	Message   string    `json:"message"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type InstallJob struct {
+	ID             string         `json:"id"`
+	ProfileID      string         `json:"profileId"`
+	ProfileName    string         `json:"profileName"`
+	OSFamily       string         `json:"osFamily"`
+	Status         string         `json:"status"`
+	MACAddress     string         `json:"macAddress"`
+	Hostname       string         `json:"hostname"`
+	NodeID         string         `json:"nodeId"`
+	Token          string         `json:"token"`
+	BootURL        string         `json:"bootUrl"`
+	ConfigURL      string         `json:"configUrl"`
+	AgentScriptURL string         `json:"agentScriptUrl"`
+	LastEvent      string         `json:"lastEvent"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
+	BootPreview    string         `json:"bootPreview"`
+	ConfigPreview  string         `json:"configPreview"`
+	Events         []InstallEvent `json:"events"`
+}
+
+type AppSettings struct {
+	AllowShell                 bool      `json:"allowShell"`
+	DiscoveryPort              int       `json:"discoveryPort"`
+	DNSMasqStateDir            string    `json:"dnsmasqStateDir"`
+	ProvisioningBaseURL        string    `json:"provisioningBaseUrl"`
+	PublicGRPCAddress          string    `json:"publicGrpcAddress"`
+	AgentBinaryPath            string    `json:"agentBinaryPath"`
+	DefaultNodeAddr            string    `json:"defaultNodeAddr"`
+	DashboardRefreshIntervalMS int       `json:"dashboardRefreshIntervalMs"`
+	DashboardDefaultCommand    string    `json:"dashboardDefaultCommand"`
+	TerminalShell              string    `json:"terminalShell"`
+	AgentListenAddress         string    `json:"agentListenAddress"`
+	AgentGRPCListenAddress     string    `json:"agentGrpcListenAddress"`
+	AgentReportIntervalSeconds int       `json:"agentReportIntervalSeconds"`
+	UpdatedAt                  time.Time `json:"updatedAt"`
+}
+
 func (s *Store) Summary() map[string]any {
 	nodes := s.ListNodes()
 	online := 0

@@ -1,0 +1,8 @@
+DEFAULT metalx
+PROMPT 0
+MENU TITLE MetalX Network Boot
+LABEL metalx
+  MENU LABEL MetalX Network Boot
+  KERNEL images/metalx/vmlinuz
+  INITRD images/metalx/initrd.img
+  APPEND ip=dhcp inst.repo=http://192.168.56.1/os

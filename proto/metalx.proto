@@ -228,6 +228,104 @@ message UpdateDnsmasqSettingsRequest {
   string actor = 2;
 }
 
+message InstallProfile {
+  string id = 1;
+  string name = 2;
+  string os_family = 3;
+  string os_version = 4;
+  string architecture = 5;
+  string firmware = 6;
+  string install_source = 7;
+  string boot_kernel_path = 8;
+  string boot_initrd_path = 9;
+  string hostname_pattern = 10;
+  string timezone = 11;
+  string locale = 12;
+  string keyboard_layout = 13;
+  string admin_username = 14;
+  string admin_password_hash = 15;
+  repeated string ssh_authorized_keys = 16;
+  repeated string packages = 17;
+  string package_mirror = 18;
+  string disk_layout = 19;
+  string network_mode = 20;
+  string agent_binary_url = 21;
+  string agent_service_name = 22;
+  string controller_grpc_address = 23;
+  string extra_kernel_args = 24;
+  string post_install_script = 25;
+  bool enabled = 26;
+  string created_at = 27;
+  string updated_at = 28;
+}
+
+message InstallJob {
+  string id = 1;
+  string profile_id = 2;
+  string profile_name = 3;
+  string os_family = 4;
+  string status = 5;
+  string mac_address = 6;
+  string hostname = 7;
+  string node_id = 8;
+  string token = 9;
+  string boot_url = 10;
+  string config_url = 11;
+  string agent_script_url = 12;
+  string last_event = 13;
+  string created_at = 14;
+  string updated_at = 15;
+  string boot_preview = 16;
+  string config_preview = 17;
+}
+
+message ListInstallProfilesResponse {
+  repeated InstallProfile items = 1;
+}
+
+message ListInstallJobsResponse {
+  repeated InstallJob items = 1;
+}
+
+message UpsertInstallProfileRequest {
+  InstallProfile profile = 1;
+  string actor = 2;
+}
+
+message CreateInstallJobRequest {
+  string profile_id = 1;
+  string mac_address = 2;
+  string hostname = 3;
+  string node_id = 4;
+  string actor = 5;
+}
+
+message InstallJobID {
+  string id = 1;
+}
+
+message AppSettings {
+  bool allow_shell = 1;
+  int32 discovery_port = 2;
+  string dnsmasq_state_dir = 3;
+  string provisioning_base_url = 4;
+  string public_grpc_address = 5;
+  string agent_binary_path = 6;
+  string default_node_addr = 7;
+  int32 dashboard_refresh_interval_ms = 8;
+  string dashboard_default_command = 9;
+  string terminal_shell = 10;
+  string agent_listen_address = 11;
+  string agent_grpc_listen_address = 12;
+  int32 agent_report_interval_seconds = 13;
+  string updated_at = 14;
+}
+
+message UpdateAppSettingsRequest {
+  AppSettings settings = 1;
+  string actor = 2;
+}
+
 message ListNodesResponse {
   repeated NodeSummary items = 1;
 }
@@ -268,5 +366,12 @@ service ControllerService {
   rpc GetSystemInfo(Empty) returns (SystemInfo);
   rpc GetDnsmasqSettings(Empty) returns (DnsmasqSettings);
   rpc UpdateDnsmasqSettings(UpdateDnsmasqSettingsRequest) returns (DnsmasqSettings);
+  rpc ListInstallProfiles(Empty) returns (ListInstallProfilesResponse);
+  rpc UpsertInstallProfile(UpsertInstallProfileRequest) returns (InstallProfile);
+  rpc ListInstallJobs(Empty) returns (ListInstallJobsResponse);
+  rpc CreateInstallJob(CreateInstallJobRequest) returns (InstallJob);
+  rpc GetInstallJob(InstallJobID) returns (InstallJob);
+  rpc GetAppSettings(Empty) returns (AppSettings);
+  rpc UpdateAppSettings(UpdateAppSettingsRequest) returns (AppSettings);
   rpc OpenTerminal(stream TerminalFrame) returns (stream TerminalFrame);
 }

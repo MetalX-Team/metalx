@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -67,8 +68,14 @@ func (a *App) Run() error {
 	protected.GET("/audits", a.handleAudits)
 	protected.GET("/alerts", a.handleAlerts)
 	protected.GET("/system", a.handleSystem)
+	protected.GET("/settings/runtime", a.handleRuntimeSettings)
+	protected.PUT("/settings/runtime", a.handleUpdateRuntimeSettings)
 	protected.GET("/system/dnsmasq", a.handleDnsmasqSettings)
 	protected.PUT("/system/dnsmasq", a.handleUpdateDnsmasqSettings)
+	protected.GET("/install/profiles", a.handleInstallProfiles)
+	protected.PUT("/install/profiles", a.handleUpsertInstallProfile)
+	protected.GET("/install/jobs", a.handleInstallJobs)
+	protected.POST("/install/jobs", a.handleCreateInstallJob)
 	protected.POST("/tasks", a.handleRunTask)
 	protected.GET("/terminal", a.handleTerminal)
 
@@ -159,6 +166,91 @@ func (a *App) handleSystem(c *gin.Context) {
 	writeProtoJSON(c, resp)
 }
 
+func (a *App) handleRuntimeSettings(c *gin.Context) {
+	resp, err := a.client.GetAppSettings(a.callContext(c), &metalxpb.Empty{})
+	if err != nil {
+		handleGRPCError(c, err)
+		return
+	}
+	data, err := protojson.MarshalOptions{UseProtoNames: false, EmitUnpopulated: true}.Marshal(resp)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	var body map[string]any
+	if err := json.Unmarshal(data, &body); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	body["adminUser"] = a.auth.PrimaryUser()
+	c.JSON(http.StatusOK, body)
+}
+
+func (a *App) handleUpdateRuntimeSettings(c *gin.Context) {
+	var payload struct {
+		AllowShell                 bool   `json:"allowShell"`
+		DiscoveryPort              int32  `json:"discoveryPort"`
+		DNSMasqStateDir            string `json:"dnsmasqStateDir"`
+		ProvisioningBaseURL        string `json:"provisioningBaseUrl"`
+		PublicGRPCAddress          string `json:"publicGrpcAddress"`
+		AgentBinaryPath            string `json:"agentBinaryPath"`
+		DefaultNodeAddr            string `json:"defaultNodeAddr"`
+		DashboardRefreshIntervalMS int32  `json:"dashboardRefreshIntervalMs"`
+		DashboardDefaultCommand    string `json:"dashboardDefaultCommand"`
+		TerminalShell              string `json:"terminalShell"`
+		AgentListenAddress         string `json:"agentListenAddress"`
+		AgentGRPCListenAddress     string `json:"agentGrpcListenAddress"`
+		AgentReportIntervalSeconds int32  `json:"agentReportIntervalSeconds"`
+		AdminUser                  string `json:"adminUser"`
+		AdminPassword              string `json:"adminPassword"`
+		Actor                      string `json:"actor"`
+	}
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := a.client.UpdateAppSettings(a.callContext(c), &metalxpb.UpdateAppSettingsRequest{
+		Settings: &metalxpb.AppSettings{
+			AllowShell:                 payload.AllowShell,
+			DiscoveryPort:              payload.DiscoveryPort,
+			DnsmasqStateDir:            payload.DNSMasqStateDir,
+			ProvisioningBaseUrl:        payload.ProvisioningBaseURL,
+			PublicGrpcAddress:          payload.PublicGRPCAddress,
+			AgentBinaryPath:            payload.AgentBinaryPath,
+			DefaultNodeAddr:            payload.DefaultNodeAddr,
+			DashboardRefreshIntervalMs: payload.DashboardRefreshIntervalMS,
+			DashboardDefaultCommand:    payload.DashboardDefaultCommand,
+			TerminalShell:              payload.TerminalShell,
+			AgentListenAddress:         payload.AgentListenAddress,
+			AgentGrpcListenAddress:     payload.AgentGRPCListenAddress,
+			AgentReportIntervalSeconds: payload.AgentReportIntervalSeconds,
+		},
+		Actor: payload.Actor,
+	})
+	if err != nil {
+		handleGRPCError(c, err)
+		return
+	}
+	if payload.AdminUser != "" && payload.AdminPassword != "" {
+		if err := a.auth.UpdateAdminCredentials(payload.AdminUser, payload.AdminPassword); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
+	data, err := protojson.MarshalOptions{UseProtoNames: false, EmitUnpopulated: true}.Marshal(resp)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	var body map[string]any
+	if err := json.Unmarshal(data, &body); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	body["adminUser"] = a.auth.PrimaryUser()
+	c.JSON(http.StatusOK, body)
+}
+
 func (a *App) handleDnsmasqSettings(c *gin.Context) {
 	resp, err := a.client.GetDnsmasqSettings(a.callContext(c), &metalxpb.Empty{})
 	if err != nil {
@@ -212,6 +304,122 @@ func (a *App) handleUpdateDnsmasqSettings(c *gin.Context) {
 			NextServer:      payload.NextServer,
 		},
 		Actor: payload.Actor,
+	})
+	if err != nil {
+		handleGRPCError(c, err)
+		return
+	}
+	writeProtoJSON(c, resp)
+}
+
+func (a *App) handleInstallProfiles(c *gin.Context) {
+	resp, err := a.client.ListInstallProfiles(a.callContext(c), &metalxpb.Empty{})
+	if err != nil {
+		handleGRPCError(c, err)
+		return
+	}
+	writeProtoJSON(c, resp)
+}
+
+func (a *App) handleUpsertInstallProfile(c *gin.Context) {
+	var payload struct {
+		ID                    string   `json:"id"`
+		Name                  string   `json:"name"`
+		OSFamily              string   `json:"osFamily"`
+		OSVersion             string   `json:"osVersion"`
+		Architecture          string   `json:"architecture"`
+		Firmware              string   `json:"firmware"`
+		InstallSource         string   `json:"installSource"`
+		BootKernelPath        string   `json:"bootKernelPath"`
+		BootInitrdPath        string   `json:"bootInitrdPath"`
+		HostnamePattern       string   `json:"hostnamePattern"`
+		Timezone              string   `json:"timezone"`
+		Locale                string   `json:"locale"`
+		KeyboardLayout        string   `json:"keyboardLayout"`
+		AdminUsername         string   `json:"adminUsername"`
+		AdminPasswordHash     string   `json:"adminPasswordHash"`
+		SSHAuthorizedKeys     []string `json:"sshAuthorizedKeys"`
+		Packages              []string `json:"packages"`
+		PackageMirror         string   `json:"packageMirror"`
+		DiskLayout            string   `json:"diskLayout"`
+		NetworkMode           string   `json:"networkMode"`
+		AgentBinaryURL        string   `json:"agentBinaryUrl"`
+		AgentServiceName      string   `json:"agentServiceName"`
+		ControllerGRPCAddress string   `json:"controllerGrpcAddress"`
+		ExtraKernelArgs       string   `json:"extraKernelArgs"`
+		PostInstallScript     string   `json:"postInstallScript"`
+		Enabled               bool     `json:"enabled"`
+		Actor                 string   `json:"actor"`
+	}
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := a.client.UpsertInstallProfile(a.callContext(c), &metalxpb.UpsertInstallProfileRequest{
+		Profile: &metalxpb.InstallProfile{
+			Id:                    payload.ID,
+			Name:                  payload.Name,
+			OsFamily:              payload.OSFamily,
+			OsVersion:             payload.OSVersion,
+			Architecture:          payload.Architecture,
+			Firmware:              payload.Firmware,
+			InstallSource:         payload.InstallSource,
+			BootKernelPath:        payload.BootKernelPath,
+			BootInitrdPath:        payload.BootInitrdPath,
+			HostnamePattern:       payload.HostnamePattern,
+			Timezone:              payload.Timezone,
+			Locale:                payload.Locale,
+			KeyboardLayout:        payload.KeyboardLayout,
+			AdminUsername:         payload.AdminUsername,
+			AdminPasswordHash:     payload.AdminPasswordHash,
+			SshAuthorizedKeys:     payload.SSHAuthorizedKeys,
+			Packages:              payload.Packages,
+			PackageMirror:         payload.PackageMirror,
+			DiskLayout:            payload.DiskLayout,
+			NetworkMode:           payload.NetworkMode,
+			AgentBinaryUrl:        payload.AgentBinaryURL,
+			AgentServiceName:      payload.AgentServiceName,
+			ControllerGrpcAddress: payload.ControllerGRPCAddress,
+			ExtraKernelArgs:       payload.ExtraKernelArgs,
+			PostInstallScript:     payload.PostInstallScript,
+			Enabled:               payload.Enabled,
+		},
+		Actor: payload.Actor,
+	})
+	if err != nil {
+		handleGRPCError(c, err)
+		return
+	}
+	writeProtoJSON(c, resp)
+}
+
+func (a *App) handleInstallJobs(c *gin.Context) {
+	resp, err := a.client.ListInstallJobs(a.callContext(c), &metalxpb.Empty{})
+	if err != nil {
+		handleGRPCError(c, err)
+		return
+	}
+	writeProtoJSON(c, resp)
+}
+
+func (a *App) handleCreateInstallJob(c *gin.Context) {
+	var payload struct {
+		ProfileID string `json:"profileId"`
+		MAC       string `json:"macAddress"`
+		Hostname  string `json:"hostname"`
+		NodeID    string `json:"nodeId"`
+		Actor     string `json:"actor"`
+	}
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := a.client.CreateInstallJob(a.callContext(c), &metalxpb.CreateInstallJobRequest{
+		ProfileId:  payload.ProfileID,
+		MacAddress: payload.MAC,
+		Hostname:   payload.Hostname,
+		NodeId:     payload.NodeID,
+		Actor:      payload.Actor,
 	})
 	if err != nil {
 		handleGRPCError(c, err)

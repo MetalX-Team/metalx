@@ -68,6 +68,19 @@ func (s *Store) migrate() error {
 			updated_at TEXT NOT NULL,
 			payload_json TEXT NOT NULL
 		)`,
+		`CREATE TABLE IF NOT EXISTS install_profiles (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			updated_at TEXT NOT NULL,
+			payload_json TEXT NOT NULL
+		)`,
+		`CREATE TABLE IF NOT EXISTS install_jobs (
+			id TEXT PRIMARY KEY,
+			mac_address TEXT NOT NULL,
+			status TEXT NOT NULL,
+			updated_at TEXT NOT NULL,
+			payload_json TEXT NOT NULL
+		)`,
 	}
 	for _, statement := range statements {
 		if _, err := s.db.Exec(statement); err != nil {
@@ -265,6 +278,173 @@ func (s *Store) LoadDnsmasqSettings() (DnsmasqSettings, bool) {
 		return DnsmasqSettings{}, false
 	}
 	return settings, true
+}
+
+func (s *Store) SaveAppSettings(settings AppSettings) error {
+	payload, err := json.Marshal(settings)
+	if err != nil {
+		return err
+	}
+	_, err = s.db.Exec(
+		`INSERT INTO configs (name, updated_at, payload_json)
+		 VALUES (?, ?, ?)
+		 ON CONFLICT(name) DO UPDATE SET
+		   updated_at = excluded.updated_at,
+		   payload_json = excluded.payload_json`,
+		"app_settings",
+		settings.UpdatedAt.UTC().Format(time.RFC3339Nano),
+		string(payload),
+	)
+	return err
+}
+
+func (s *Store) LoadAppSettings() (AppSettings, bool) {
+	var payload string
+	err := s.db.QueryRow(`SELECT payload_json FROM configs WHERE name = ?`, "app_settings").Scan(&payload)
+	if err != nil {
+		return AppSettings{}, false
+	}
+	var settings AppSettings
+	if json.Unmarshal([]byte(payload), &settings) != nil {
+		return AppSettings{}, false
+	}
+	return settings, true
+}
+
+func (s *Store) SaveInstallProfile(profile InstallProfile) error {
+	payload, err := json.Marshal(profile)
+	if err != nil {
+		return err
+	}
+	_, err = s.db.Exec(
+		`INSERT INTO install_profiles (id, name, updated_at, payload_json)
+		 VALUES (?, ?, ?, ?)
+		 ON CONFLICT(id) DO UPDATE SET
+		   name = excluded.name,
+		   updated_at = excluded.updated_at,
+		   payload_json = excluded.payload_json`,
+		profile.ID,
+		profile.Name,
+		profile.UpdatedAt.UTC().Format(time.RFC3339Nano),
+		string(payload),
+	)
+	return err
+}
+
+func (s *Store) ListInstallProfiles() []InstallProfile {
+	rows, err := s.db.Query(`SELECT payload_json FROM install_profiles ORDER BY name ASC`)
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+
+	items := make([]InstallProfile, 0)
+	for rows.Next() {
+		var payload string
+		if rows.Scan(&payload) != nil {
+			continue
+		}
+		var item InstallProfile
+		if json.Unmarshal([]byte(payload), &item) != nil {
+			continue
+		}
+		items = append(items, item)
+	}
+	return items
+}
+
+func (s *Store) GetInstallProfile(id string) (InstallProfile, bool) {
+	var payload string
+	err := s.db.QueryRow(`SELECT payload_json FROM install_profiles WHERE id = ?`, id).Scan(&payload)
+	if err != nil {
+		return InstallProfile{}, false
+	}
+	var item InstallProfile
+	if json.Unmarshal([]byte(payload), &item) != nil {
+		return InstallProfile{}, false
+	}
+	return item, true
+}
+
+func (s *Store) SaveInstallJob(job InstallJob) error {
+	payload, err := json.Marshal(job)
+	if err != nil {
+		return err
+	}
+	_, err = s.db.Exec(
+		`INSERT INTO install_jobs (id, mac_address, status, updated_at, payload_json)
+		 VALUES (?, ?, ?, ?, ?)
+		 ON CONFLICT(id) DO UPDATE SET
+		   mac_address = excluded.mac_address,
+		   status = excluded.status,
+		   updated_at = excluded.updated_at,
+		   payload_json = excluded.payload_json`,
+		job.ID,
+		job.MACAddress,
+		job.Status,
+		job.UpdatedAt.UTC().Format(time.RFC3339Nano),
+		string(payload),
+	)
+	return err
+}
+
+func (s *Store) ListInstallJobs() []InstallJob {
+	rows, err := s.db.Query(`SELECT payload_json FROM install_jobs ORDER BY updated_at DESC`)
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+
+	items := make([]InstallJob, 0)
+	for rows.Next() {
+		var payload string
+		if rows.Scan(&payload) != nil {
+			continue
+		}
+		var item InstallJob
+		if json.Unmarshal([]byte(payload), &item) != nil {
+			continue
+		}
+		items = append(items, item)
+	}
+	return items
+}
+
+func (s *Store) GetInstallJob(id string) (InstallJob, bool) {
+	var payload string
+	err := s.db.QueryRow(`SELECT payload_json FROM install_jobs WHERE id = ?`, id).Scan(&payload)
+	if err != nil {
+		return InstallJob{}, false
+	}
+	var item InstallJob
+	if json.Unmarshal([]byte(payload), &item) != nil {
+		return InstallJob{}, false
+	}
+	return item, true
+}
+
+func (s *Store) GetInstallJobByMAC(macAddress string) (InstallJob, bool) {
+	rows, err := s.db.Query(`SELECT payload_json FROM install_jobs ORDER BY updated_at DESC`)
+	if err != nil {
+		return InstallJob{}, false
+	}
+	defer rows.Close()
+
+	normalized := macAddress
+	for rows.Next() {
+		var payload string
+		if rows.Scan(&payload) != nil {
+			continue
+		}
+		var item InstallJob
+		if json.Unmarshal([]byte(payload), &item) != nil {
+			continue
+		}
+		if item.MACAddress == normalized && item.Status != "managed" && item.Status != "completed" {
+			return item, true
+		}
+	}
+	return InstallJob{}, false
 }
 
 func (s *Store) AddRecentCommand(nodeID string, result TaskResult) {

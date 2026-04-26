@@ -25,7 +25,7 @@ func Load(args []string) (Config, error) {
 		DiscoveryUDPPort:  9527,
 		ListenAddress:     envOrDefault("MX_AGENT_LISTEN", ":18081"),
 		GRPCListenAddress: envOrDefault("MX_AGENT_GRPC_LISTEN", ":19091"),
-		ReportInterval:    15 * time.Second,
+		ReportInterval:    1 * time.Second,
 	}
 
 	fs := flag.NewFlagSet("mxagent", flag.ContinueOnError)

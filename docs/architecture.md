@@ -25,4 +25,5 @@ MetalX is organized as a monorepo with four deployable parts:
 - Cluster summary and per-node details.
 - Command execution and task history.
 - Controller-managed dnsmasq and PXE boot profile generation.
+- Controller-managed provisioning profiles, install jobs, iPXE boot scripts, OS-specific unattended install files, and agent bootstrap script generation.
 - Dashboard overview, node details, tasks, terminal, alerts, audit, and settings shells.

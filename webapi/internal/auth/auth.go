@@ -63,6 +63,21 @@ func (m *Manager) Close() error {
 	return m.store.Close()
 }
 
+func (m *Manager) PrimaryUser() string {
+	if m == nil {
+		return ""
+	}
+	user, _ := m.store.PrimaryUser()
+	return user
+}
+
+func (m *Manager) UpdateAdminCredentials(user, password string) error {
+	if m == nil {
+		return nil
+	}
+	return m.store.ResetAdmin(user, hashValue(password))
+}
+
 func hashValue(value string) string {
 	sum := sha256.Sum256([]byte(value))
 	return hex.EncodeToString(sum[:])
